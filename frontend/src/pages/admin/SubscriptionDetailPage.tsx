@@ -18,6 +18,7 @@ import { Button } from '../../components/ui/Button';
 import { StatCard } from '../../components/ui/StatCard';
 import { MOCK_SUBSCRIPTIONS, MOCK_INVOICES, MOCK_PAYMENTS } from '../../services/mockData';
 import { Subscription, SubscriptionStatus } from '../../types';
+import { formatINR } from '../../utils/formatters';
 
 export const SubscriptionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -133,7 +134,7 @@ export const SubscriptionDetailPage: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <StatCard
           title="Recurring Rate"
-          value={`$${sub.amount.toFixed(2)}`}
+          value={formatINR(sub.amount)}
           subtitle={`Billed ${sub.billingFrequency.toLowerCase()}`}
           icon={<Repeat className="w-5 h-5 text-primary" />}
         />
@@ -191,10 +192,10 @@ export const SubscriptionDetailPage: React.FC = () => {
                     )}
                   </td>
                   <td className="py-2.5 px-3 text-center font-mono">{l.quantity}</td>
-                  <td className="py-2.5 px-3 text-right font-mono">${l.unitPrice.toFixed(2)}</td>
+                  <td className="py-2.5 px-3 text-right font-mono">{formatINR(l.unitPrice)}</td>
                   <td className="py-2.5 px-3 text-right">{l.taxRate}%</td>
                   <td className="py-2.5 px-3 text-right font-bold font-mono text-text-primary">
-                    ${l.amount.toFixed(2)}
+                    {formatINR(l.amount)}
                   </td>
                 </tr>
               ))
@@ -242,8 +243,8 @@ export const SubscriptionDetailPage: React.FC = () => {
                   <td className="py-2.5 px-3 font-mono font-medium text-text-primary">{inv.invoiceNumber}</td>
                   <td className="py-2.5 px-3">{inv.issueDate}</td>
                   <td className="py-2.5 px-3">{inv.dueDate}</td>
-                  <td className="py-2.5 px-3 text-right font-bold">${inv.total.toFixed(2)}</td>
-                  <td className="py-2.5 px-3 text-right font-semibold text-danger">${inv.outstandingBalance.toFixed(2)}</td>
+                  <td className="py-2.5 px-3 text-right font-bold font-mono">{formatINR(inv.total)}</td>
+                  <td className="py-2.5 px-3 text-right font-semibold text-danger font-mono">{formatINR(inv.outstandingBalance)}</td>
                   <td className="py-2.5 px-3">
                     <Badge variant={inv.status}>{inv.status}</Badge>
                   </td>

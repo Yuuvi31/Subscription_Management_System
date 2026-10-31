@@ -7,6 +7,7 @@ import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
 import { MOCK_PRODUCTS } from '../../services/mockData';
 import { ProductVariant } from '../../types';
+import { formatINR } from '../../utils/formatters';
 
 export const ProductVariantsPage: React.FC = () => {
   // Extract all variants across products
@@ -92,12 +93,12 @@ export const ProductVariantsPage: React.FC = () => {
                     {v.name}
                   </td>
                   <td className="py-3 px-4 text-text-secondary">{v.productName}</td>
-                  <td className="py-3 px-4 text-right font-mono">${v.basePrice.toFixed(2)}</td>
+                  <td className="py-3 px-4 text-right font-mono">{formatINR(v.basePrice)}</td>
                   <td className="py-3 px-4 text-right font-mono font-semibold text-primary">
-                    +${v.additionalPrice.toFixed(2)}
+                    +{formatINR(v.additionalPrice)}
                   </td>
                   <td className="py-3 px-4 text-right font-mono font-bold text-text-primary">
-                    ${effectiveTotal.toFixed(2)}
+                    {formatINR(effectiveTotal)}
                   </td>
                   <td className="py-3 px-4">
                     <Badge variant={v.status}>{v.status}</Badge>

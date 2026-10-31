@@ -17,6 +17,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { StatCard } from '../../components/ui/StatCard';
 import { MOCK_CUSTOMERS, MOCK_SUBSCRIPTIONS, MOCK_INVOICES, MOCK_PAYMENTS } from '../../services/mockData';
+import { formatINR } from '../../utils/formatters';
 
 export const CustomerDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -83,13 +84,13 @@ export const CustomerDetailPage: React.FC = () => {
         />
         <StatCard
           title="Outstanding Dues"
-          value={`$${customer.outstandingAmount.toFixed(2)}`}
+          value={formatINR(customer.outstandingAmount)}
           subtitle="pending invoices"
           icon={<Receipt className="w-5 h-5 text-danger" />}
         />
         <StatCard
           title="Total Paid"
-          value={`$${payments.reduce((acc, p) => acc + p.amount, 0).toFixed(2)}`}
+          value={formatINR(payments.reduce((acc, p) => acc + p.amount, 0))}
           subtitle="lifetime collections"
           icon={<CreditCard className="w-5 h-5 text-success" />}
         />
@@ -173,7 +174,7 @@ export const CustomerDetailPage: React.FC = () => {
                   <td className="py-3 px-4 font-semibold text-text-primary">{sub.planName}</td>
                   <td className="py-3 px-4 capitalize">{sub.billingFrequency.toLowerCase()}</td>
                   <td className="py-3 px-4">{sub.nextBillingDate}</td>
-                  <td className="py-3 px-4 text-right font-bold text-text-primary">${sub.amount.toFixed(2)}</td>
+                  <td className="py-3 px-4 text-right font-bold text-text-primary font-mono">{formatINR(sub.amount)}</td>
                   <td className="py-3 px-4">
                     <Badge variant={sub.status}>{sub.status}</Badge>
                   </td>
@@ -209,8 +210,8 @@ export const CustomerDetailPage: React.FC = () => {
                   <td className="py-3 px-4 font-mono font-medium text-text-primary">{inv.invoiceNumber}</td>
                   <td className="py-3 px-4">{inv.issueDate}</td>
                   <td className="py-3 px-4">{inv.dueDate}</td>
-                  <td className="py-3 px-4 text-right font-bold">${inv.total.toFixed(2)}</td>
-                  <td className="py-3 px-4 text-right font-semibold text-danger">${inv.outstandingBalance.toFixed(2)}</td>
+                  <td className="py-3 px-4 text-right font-bold font-mono">{formatINR(inv.total)}</td>
+                  <td className="py-3 px-4 text-right font-semibold text-danger font-mono">{formatINR(inv.outstandingBalance)}</td>
                   <td className="py-3 px-4">
                     <Badge variant={inv.status}>{inv.status}</Badge>
                   </td>
@@ -247,7 +248,7 @@ export const CustomerDetailPage: React.FC = () => {
                   <td className="py-3 px-4 font-mono font-medium text-primary">{p.invoiceNumber}</td>
                   <td className="py-3 px-4">{p.paymentDate}</td>
                   <td className="py-3 px-4 capitalize">{p.method.replace('_', ' ').toLowerCase()}</td>
-                  <td className="py-3 px-4 text-right font-bold text-success">+${p.amount.toFixed(2)}</td>
+                  <td className="py-3 px-4 text-right font-bold text-success font-mono">+{formatINR(p.amount)}</td>
                   <td className="py-3 px-4 text-text-muted">{p.note}</td>
                   <td className="py-3 px-4">
                     <Badge variant="paid">{p.status}</Badge>

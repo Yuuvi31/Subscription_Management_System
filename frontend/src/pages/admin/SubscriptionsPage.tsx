@@ -6,6 +6,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { MOCK_SUBSCRIPTIONS } from '../../services/mockData';
 import { Subscription, SubscriptionStatus } from '../../types';
+import { formatINR } from '../../utils/formatters';
 
 export const SubscriptionsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -122,7 +123,7 @@ export const SubscriptionsPage: React.FC = () => {
                     {sub.startDate} to {sub.expiryDate}
                   </td>
                   <td className="py-3 px-4 font-medium text-text-primary">{sub.nextBillingDate}</td>
-                  <td className="py-3 px-4 text-right font-bold text-text-primary">${sub.amount.toFixed(2)}</td>
+                  <td className="py-3 px-4 text-right font-bold text-text-primary font-mono">{formatINR(sub.amount)}</td>
                   <td className="py-3 px-4">
                     <Badge variant={sub.status}>{sub.status}</Badge>
                   </td>

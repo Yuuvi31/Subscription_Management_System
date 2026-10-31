@@ -17,6 +17,7 @@ import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
 import { MOCK_INVOICES, MOCK_PAYMENTS } from '../../services/mockData';
 import { Invoice, PaymentMethod } from '../../types';
+import { formatINR } from '../../utils/formatters';
 
 export const InvoicesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -165,11 +166,11 @@ export const InvoicesPage: React.FC = () => {
                         {inv.dueDate}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right font-bold text-text-primary">${inv.total.toFixed(2)}</td>
-                    <td className="py-3 px-4 text-right text-success font-medium">${inv.paidAmount.toFixed(2)}</td>
+                    <td className="py-3 px-4 text-right font-bold text-text-primary font-mono">{formatINR(inv.total)}</td>
+                    <td className="py-3 px-4 text-right text-success font-medium font-mono">{formatINR(inv.paidAmount)}</td>
                     <td className="py-3 px-4 text-right">
-                      <span className={inv.outstandingBalance > 0 ? 'font-bold text-danger' : 'text-text-muted'}>
-                        ${inv.outstandingBalance.toFixed(2)}
+                      <span className={inv.outstandingBalance > 0 ? 'font-bold text-danger font-mono' : 'text-text-muted font-mono'}>
+                        {formatINR(inv.outstandingBalance)}
                       </span>
                     </td>
                     <td className="py-3 px-4">

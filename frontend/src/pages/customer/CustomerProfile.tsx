@@ -24,12 +24,12 @@ export const CustomerProfile: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Primary Contact Name"
-              defaultValue={user?.name || 'Marcus Vance'}
+              defaultValue={user?.name || 'Yuvraj Dutt'}
               leftIcon={<User className="w-4 h-4" />}
             />
             <Input
               label="Company Legal Entity"
-              defaultValue="Apex Logistics Inc."
+              defaultValue="Apex Technologies Pvt Ltd"
               leftIcon={<Building className="w-4 h-4" />}
             />
           </div>
@@ -38,19 +38,19 @@ export const CustomerProfile: React.FC = () => {
             <Input
               label="Billing Email"
               type="email"
-              defaultValue={user?.email || 'marcus@apexlogistics.com'}
+              defaultValue={user?.email || 'yuvraj.dutt@enterprise.in'}
               leftIcon={<Mail className="w-4 h-4" />}
             />
             <Input
               label="Phone Number"
-              defaultValue="+1 (555) 234-8901"
+              defaultValue="+91 98765 43210"
               leftIcon={<Phone className="w-4 h-4" />}
             />
           </div>
 
           <Input
             label="Corporate Registered Address"
-            defaultValue="100 Industrial Parkway, Chicago, IL 60601"
+            defaultValue="DLF Cyber City, Tower B, Gurugram, Haryana 122002, India"
             leftIcon={<MapPin className="w-4 h-4" />}
           />
 

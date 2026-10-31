@@ -20,7 +20,7 @@ import {
   ChevronRight,
   LogOut,
   Building2,
-  Sparkles,
+  LifeBuoy,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -76,8 +76,9 @@ export const Sidebar: React.FC = () => {
           ],
         },
         {
-          group: 'System',
+          group: 'System & Support',
           items: [
+            { name: 'Support Tickets', to: '/admin/tickets', icon: <LifeBuoy className="w-4 h-4" /> },
             { name: 'Reports', to: '/admin/reports', icon: <BarChart3 className="w-4 h-4" /> },
             { name: 'Settings', to: '/admin/settings', icon: <Settings className="w-4 h-4" /> },
           ],
@@ -101,6 +102,7 @@ export const Sidebar: React.FC = () => {
             { name: 'Subscriptions', to: '/staff/subscriptions', icon: <Repeat className="w-4 h-4" /> },
             { name: 'Invoices', to: '/staff/invoices', icon: <Receipt className="w-4 h-4" /> },
             { name: 'Payments', to: '/staff/payments', icon: <CreditCard className="w-4 h-4" /> },
+            { name: 'Support Tickets', to: '/staff/tickets', icon: <LifeBuoy className="w-4 h-4" /> },
           ],
         },
       ];
@@ -117,9 +119,10 @@ export const Sidebar: React.FC = () => {
       {
         group: 'Self Service',
         items: [
-          { name: 'My Subscriptions', to: '/customer/subscriptions', icon: <Repeat className="w-4 h-4" /> },
+          { name: 'Manage Subscriptions', to: '/customer/subscriptions', icon: <Repeat className="w-4 h-4" /> },
           { name: 'My Invoices', to: '/customer/invoices', icon: <Receipt className="w-4 h-4" /> },
           { name: 'Payment History', to: '/customer/payments', icon: <CreditCard className="w-4 h-4" /> },
+          { name: 'Raise Ticket / Support', to: '/customer/tickets', icon: <LifeBuoy className="w-4 h-4" /> },
           { name: 'Profile', to: '/customer/profile', icon: <Users className="w-4 h-4" /> },
         ],
       },

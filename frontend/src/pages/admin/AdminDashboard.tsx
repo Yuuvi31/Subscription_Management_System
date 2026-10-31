@@ -31,6 +31,8 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { MOCK_DASHBOARD } from '../../services/mockData';
 
+import { formatINR, formatINRAxis } from '../../utils/formatters';
+
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [period, setPeriod] = useState<'7d' | '30d' | '90d'>('30d');
@@ -130,7 +132,7 @@ export const AdminDashboard: React.FC = () => {
         />
         <StatCard
           title="Revenue Collected"
-          value={`$${stats.revenueCollected.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+          value={formatINR(stats.revenueCollected)}
           subtitle="verified bank transfers"
           trend={{ value: '+18.2% YTD', isPositive: true }}
           icon={<DollarSign className="w-5 h-5 text-success" />}
@@ -138,7 +140,7 @@ export const AdminDashboard: React.FC = () => {
         />
         <StatCard
           title="Outstanding Balance"
-          value={`$${stats.outstandingBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+          value={formatINR(stats.outstandingBalance)}
           subtitle="unpaid active invoices"
           icon={<Clock className="w-5 h-5 text-warning" />}
           onClick={() => navigate('/admin/invoices')}
@@ -186,10 +188,10 @@ export const AdminDashboard: React.FC = () => {
                   stroke="#737987"
                   fontSize={12}
                   tickLine={false}
-                  tickFormatter={(val) => `$${val / 1000}k`}
+                  tickFormatter={(val) => formatINRAxis(val)}
                 />
                 <Tooltip
-                  formatter={(val: any) => [`$${Number(val || 0).toLocaleString()}`, 'Revenue']}
+                  formatter={(val: any) => [formatINR(Number(val || 0)), 'Revenue']}
                   contentStyle={{
                     backgroundColor: '#FFFFFF',
                     borderColor: '#E8EAF0',
@@ -293,7 +295,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <span className="text-sm font-bold text-text-primary block">
-                    ${inv.outstandingBalance.toFixed(2)}
+                    {formatINR(inv.outstandingBalance)}
                   </span>
                   <button
                     onClick={() => navigate(`/admin/invoices/${inv.id}`)}
@@ -340,7 +342,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
                 <div className="text-right">
                   <span className="text-sm font-bold text-text-primary block">
-                    ${sub.amount.toFixed(2)}
+                    {formatINR(sub.amount)}
                   </span>
                   <button
                     onClick={() => navigate(`/admin/subscriptions/${sub.id}`)}

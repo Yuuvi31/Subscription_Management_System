@@ -11,25 +11,26 @@ import {
   DiscountRule,
   DashboardSummary,
   UserProfile,
+  SupportTicket,
 } from '../types';
 
 export const DEMO_USERS: Record<string, UserProfile> = {
   ADMIN: {
     id: 'user-admin-01',
-    name: 'Sarah Jenkins (Admin)',
-    email: 'admin@brightloop.io',
+    name: 'System Admin',
+    email: 'admin',
     role: 'ADMIN',
   },
   STAFF: {
     id: 'user-staff-01',
-    name: 'Alex Rivera (Staff)',
-    email: 'alex.staff@brightloop.io',
+    name: 'Executive Staff (x182)',
+    email: 'x182',
     role: 'STAFF',
   },
   CUSTOMER: {
     id: 'user-cust-01',
-    name: 'Marcus Vance',
-    email: 'marcus@apexlogistics.com',
+    name: 'Yuvraj Dutt',
+    email: 'Yuvraj Dutt',
     role: 'CUSTOMER',
     customerId: 'cust-01',
   },
@@ -38,11 +39,11 @@ export const DEMO_USERS: Record<string, UserProfile> = {
 export const MOCK_CUSTOMERS: Customer[] = [
   {
     id: 'cust-01',
-    name: 'Apex Logistics Inc.',
-    email: 'marcus@apexlogistics.com',
-    company: 'Apex Logistics',
-    phone: '+1 (555) 234-8901',
-    address: '100 Industrial Parkway, Chicago, IL',
+    name: 'Yuvraj Dutt',
+    email: 'yuvraj.dutt@enterprise.in',
+    company: 'Apex Technologies Pvt Ltd',
+    phone: '+91 98765 43210',
+    address: 'DLF Cyber City, Tower B, Gurugram, India',
     status: 'ACTIVE',
     totalSubscriptions: 3,
     activeSubscriptions: 2,
@@ -689,3 +690,56 @@ export const MOCK_DASHBOARD: DashboardSummary = {
     MOCK_INVOICES[0],
   ],
 };
+
+export const MOCK_TICKETS: SupportTicket[] = [
+  {
+    id: 'tkt-01',
+    ticketNumber: 'TKT-2026-0089',
+    customerId: 'cust-01',
+    customerName: 'Yuvraj Dutt',
+    subject: 'Request for Odoo Variant API rate limits enhancement',
+    category: 'TECHNICAL',
+    priority: 'HIGH',
+    status: 'IN_PROGRESS',
+    messages: [
+      {
+        id: 'msg-01',
+        senderName: 'Yuvraj Dutt',
+        senderRole: 'CUSTOMER',
+        message: 'Hello Brightloop team, we have activated the Odoo brand add-on variant and need to increase our webhook throughput for high-volume transactions.',
+        timestamp: '2026-10-29 10:30 AM',
+      },
+      {
+        id: 'msg-02',
+        senderName: 'Alex Rivera (x182)',
+        senderRole: 'STAFF',
+        message: 'Hi Yuvraj! We have increased your dedicated API pipeline allocation on subscription SUB-2026-0101. Please test your endpoints now.',
+        timestamp: '2026-10-29 11:15 AM',
+      },
+    ],
+    createdAt: '2026-10-29',
+    updatedAt: '2026-10-29',
+  },
+  {
+    id: 'tkt-02',
+    ticketNumber: 'TKT-2026-0092',
+    customerId: 'cust-01',
+    customerName: 'Yuvraj Dutt',
+    subject: 'GST Invoice Verification & Tax Credit Certificate',
+    category: 'BILLING',
+    priority: 'MEDIUM',
+    status: 'OPEN',
+    messages: [
+      {
+        id: 'msg-03',
+        senderName: 'Yuvraj Dutt',
+        senderRole: 'CUSTOMER',
+        message: 'Kindly ensure the state GST input credit number is reflected on invoice INV-2026-1001 for our quarterly filing.',
+        timestamp: '2026-10-30 02:45 PM',
+      },
+    ],
+    createdAt: '2026-10-30',
+    updatedAt: '2026-10-30',
+  },
+];
+

@@ -1,8 +1,7 @@
-import React from 'react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { MOCK_PAYMENTS } from '../../services/mockData';
-import { CreditCard, CheckCircle2 } from 'lucide-react';
+import { formatINR } from '../../utils/formatters';
 
 export const CustomerPayments: React.FC = () => {
   const payments = MOCK_PAYMENTS.filter(p => p.customerId === 'cust-01');
@@ -39,7 +38,7 @@ export const CustomerPayments: React.FC = () => {
                   <td className="py-3 px-4 font-mono text-primary font-semibold">{p.invoiceNumber}</td>
                   <td className="py-3 px-4 text-text-secondary">{p.paymentDate}</td>
                   <td className="py-3 px-4 font-medium capitalize">{p.method.replace('_', ' ').toLowerCase()}</td>
-                  <td className="py-3 px-4 font-bold text-success">+${p.amount.toFixed(2)}</td>
+                  <td className="py-3 px-4 font-bold text-success font-mono">+{formatINR(p.amount)}</td>
                   <td className="py-3 px-4 text-text-muted">{p.note}</td>
                   <td className="py-3 px-4">
                     <Badge variant="paid">{p.status}</Badge>

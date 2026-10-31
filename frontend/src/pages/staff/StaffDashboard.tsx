@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { MOCK_CUSTOMERS, MOCK_SUBSCRIPTIONS, MOCK_INVOICES } from '../../services/mockData';
+import { formatINR } from '../../utils/formatters';
 
 export const StaffDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -125,7 +126,7 @@ export const StaffDashboard: React.FC = () => {
                   <p className="text-xs text-text-secondary mt-0.5">{inv.customerCompany}</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-bold text-text-primary block">${inv.total.toFixed(2)}</span>
+                  <span className="text-xs font-bold text-text-primary block font-mono">{formatINR(inv.total)}</span>
                   <span className="text-[11px] text-text-muted">Due {inv.dueDate}</span>
                 </div>
               </div>

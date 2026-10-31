@@ -7,6 +7,7 @@ import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
 import { MOCK_PAYMENTS, MOCK_INVOICES } from '../../services/mockData';
 import { Payment, PaymentMethod } from '../../types';
+import { formatINR } from '../../utils/formatters';
 
 export const PaymentsPage: React.FC = () => {
   const [payments, setPayments] = useState<Payment[]>(MOCK_PAYMENTS);
@@ -107,8 +108,8 @@ export const PaymentsPage: React.FC = () => {
                   <td className="py-3 px-4 font-medium text-text-primary">{p.customerName}</td>
                   <td className="py-3 px-4 capitalize">{p.method.replace('_', ' ').toLowerCase()}</td>
                   <td className="py-3 px-4 text-text-secondary">{p.paymentDate}</td>
-                  <td className="py-3 px-4 text-right font-bold text-success font-mono">
-                    +${p.amount.toFixed(2)}
+                  <td className="py-3 px-4 font-bold text-success font-mono">
+                    +{formatINR(p.amount)}
                   </td>
                   <td className="py-3 px-4 text-text-muted">{p.note}</td>
                   <td className="py-3 px-4">

@@ -18,6 +18,7 @@ import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { StatCard } from '../../components/ui/StatCard';
 import { MOCK_DASHBOARD } from '../../services/mockData';
+import { formatINR } from '../../utils/formatters';
 
 const PAYMENT_METHODS_DATA = [
   { method: 'Bank Transfer / Wire', amount: 124500, percentage: 74, color: '#635BDB' },
@@ -77,14 +78,14 @@ export const ReportsPage: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <StatCard
           title="Total Lifetime ARR"
-          value="$587,400"
+          value={formatINR(5874000)}
           subtitle="contracted annual run-rate"
           trend={{ value: '+22.4%', isPositive: true }}
           icon={<DollarSign className="w-5 h-5 text-primary" />}
         />
         <StatCard
           title="Avg Revenue Per Account"
-          value="$1,186"
+          value={formatINR(85400)}
           subtitle="monthly recurring blended ARPU"
           trend={{ value: '+8.1%', isPositive: true }}
           icon={<TrendingUp className="w-5 h-5 text-success" />}
@@ -97,7 +98,7 @@ export const ReportsPage: React.FC = () => {
         />
         <StatCard
           title="Aging Overdue Receivables"
-          value="$14,839"
+          value={formatINR(148390)}
           subtitle="6 overdue statements"
           trend={{ value: 'Requires audit', isPositive: false }}
           icon={<AlertTriangle className="w-5 h-5 text-danger" />}
@@ -154,7 +155,7 @@ export const ReportsPage: React.FC = () => {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(val: any) => [`$${Number(val || 0).toLocaleString()}`, 'Settled']}
+                  formatter={(val: any) => [formatINR(Number(val || 0)), 'Settled']}
                   contentStyle={{
                     backgroundColor: '#FFFFFF',
                     borderColor: '#E8EAF0',

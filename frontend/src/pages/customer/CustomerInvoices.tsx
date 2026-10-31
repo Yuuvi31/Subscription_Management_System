@@ -5,7 +5,8 @@ import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { MOCK_INVOICES } from '../../services/mockData';
 import { Invoice } from '../../types';
-import { Printer, Download, Eye, Receipt, Building2 } from 'lucide-react';
+import { formatINR } from '../../utils/formatters';
+import { Printer, Eye } from 'lucide-react';
 
 export const CustomerInvoices: React.FC = () => {
   const invoices = MOCK_INVOICES.filter(i => i.customerId === 'cust-01');
@@ -51,11 +52,11 @@ export const CustomerInvoices: React.FC = () => {
                   </td>
                   <td className="py-3 px-4 text-text-secondary">{inv.issueDate}</td>
                   <td className="py-3 px-4 text-text-secondary">{inv.dueDate}</td>
-                  <td className="py-3 px-4 font-bold text-text-primary">${inv.total.toFixed(2)}</td>
-                  <td className="py-3 px-4 text-success">${inv.paidAmount.toFixed(2)}</td>
+                  <td className="py-3 px-4 font-bold text-text-primary font-mono">{formatINR(inv.total)}</td>
+                  <td className="py-3 px-4 text-success font-mono">{formatINR(inv.paidAmount)}</td>
                   <td className="py-3 px-4">
-                    <span className={inv.outstandingBalance > 0 ? 'text-danger font-semibold' : 'text-text-muted'}>
-                      ${inv.outstandingBalance.toFixed(2)}
+                    <span className={inv.outstandingBalance > 0 ? 'text-danger font-semibold font-mono' : 'text-text-muted font-mono'}>
+                      {formatINR(inv.outstandingBalance)}
                     </span>
                   </td>
                   <td className="py-3 px-4">
@@ -135,9 +136,9 @@ export const CustomerInvoices: React.FC = () => {
                   <tr key={l.id}>
                     <td className="py-2.5 px-3 font-medium text-text-primary">{l.description}</td>
                     <td className="py-2.5 px-3 text-center">{l.quantity}</td>
-                    <td className="py-2.5 px-3 text-right font-mono">${l.unitPrice.toFixed(2)}</td>
-                    <td className="py-2.5 px-3 text-right font-mono">${l.taxAmount.toFixed(2)}</td>
-                    <td className="py-2.5 px-3 text-right font-mono font-semibold">${l.total.toFixed(2)}</td>
+                    <td className="py-2.5 px-3 text-right font-mono">{formatINR(l.unitPrice)}</td>
+                    <td className="py-2.5 px-3 text-right font-mono">{formatINR(l.taxAmount)}</td>
+                    <td className="py-2.5 px-3 text-right font-mono font-semibold">{formatINR(l.total)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -148,29 +149,29 @@ export const CustomerInvoices: React.FC = () => {
               <div className="w-64 space-y-1.5 text-right">
                 <div className="flex justify-between text-text-secondary">
                   <span>Subtotal:</span>
-                  <span className="font-mono">${selectedInvoice.subtotal.toFixed(2)}</span>
+                  <span className="font-mono">{formatINR(selectedInvoice.subtotal)}</span>
                 </div>
                 {selectedInvoice.discountAmount > 0 && (
                   <div className="flex justify-between text-success">
                     <span>Discount:</span>
-                    <span className="font-mono">-${selectedInvoice.discountAmount.toFixed(2)}</span>
+                    <span className="font-mono">-{formatINR(selectedInvoice.discountAmount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-text-secondary">
                   <span>Estimated Tax:</span>
-                  <span className="font-mono">+${selectedInvoice.taxAmount.toFixed(2)}</span>
+                  <span className="font-mono">+{formatINR(selectedInvoice.taxAmount)}</span>
                 </div>
                 <div className="flex justify-between text-sm font-bold text-text-primary pt-2 border-t border-border">
                   <span>Total Amount:</span>
-                  <span className="font-mono">${selectedInvoice.total.toFixed(2)}</span>
+                  <span className="font-mono">{formatINR(selectedInvoice.total)}</span>
                 </div>
                 <div className="flex justify-between text-success text-xs">
                   <span>Amount Paid:</span>
-                  <span className="font-mono">${selectedInvoice.paidAmount.toFixed(2)}</span>
+                  <span className="font-mono">{formatINR(selectedInvoice.paidAmount)}</span>
                 </div>
                 <div className="flex justify-between text-danger font-semibold text-xs pt-1 border-t border-border">
                   <span>Outstanding Balance:</span>
-                  <span className="font-mono">${selectedInvoice.outstandingBalance.toFixed(2)}</span>
+                  <span className="font-mono">{formatINR(selectedInvoice.outstandingBalance)}</span>
                 </div>
               </div>
             </div>

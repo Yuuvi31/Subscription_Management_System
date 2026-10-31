@@ -30,6 +30,7 @@ import { DiscountsPage } from '../pages/admin/DiscountsPage';
 import { TaxesPage } from '../pages/admin/TaxesPage';
 import { ReportsPage } from '../pages/admin/ReportsPage';
 import { SettingsPage } from '../pages/admin/SettingsPage';
+import { SupportTicketsPage } from '../pages/admin/SupportTicketsPage';
 
 // Staff Pages
 import { StaffDashboard } from '../pages/staff/StaffDashboard';
@@ -40,6 +41,7 @@ import { CustomerSubscriptions } from '../pages/customer/CustomerSubscriptions';
 import { CustomerInvoices } from '../pages/customer/CustomerInvoices';
 import { CustomerPayments } from '../pages/customer/CustomerPayments';
 import { CustomerProfile } from '../pages/customer/CustomerProfile';
+import { CustomerTickets } from '../pages/customer/CustomerTickets';
 
 export const AppRoutes: React.FC = () => {
   const { role } = useAuth();
@@ -222,6 +224,14 @@ export const AppRoutes: React.FC = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/tickets"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <SupportTicketsPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* STAFF ROUTES */}
         <Route
@@ -304,6 +314,14 @@ export const AppRoutes: React.FC = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/staff/tickets"
+          element={
+            <ProtectedRoute allowedRoles={['STAFF', 'ADMIN']}>
+              <SupportTicketsPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* CUSTOMER PORTAL ROUTES */}
         <Route
@@ -335,6 +353,14 @@ export const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute allowedRoles={['CUSTOMER', 'ADMIN']}>
               <CustomerPayments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer/tickets"
+          element={
+            <ProtectedRoute allowedRoles={['CUSTOMER', 'ADMIN']}>
+              <CustomerTickets />
             </ProtectedRoute>
           }
         />

@@ -7,6 +7,7 @@ import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
 import { MOCK_PLANS } from '../../services/mockData';
 import { Plan, BillingFrequency } from '../../types';
+import { formatINR } from '../../utils/formatters';
 
 export const PlansPage: React.FC = () => {
   const [plans, setPlans] = useState<Plan[]>(MOCK_PLANS);
@@ -88,7 +89,7 @@ export const PlansPage: React.FC = () => {
               <div className="mt-4 pt-4 border-t border-border">
                 <span className="text-[10px] text-text-muted uppercase block">Plan Recurring Base</span>
                 <div className="flex items-baseline gap-1 mt-0.5">
-                  <span className="text-2xl font-bold text-text-primary">${plan.price.toFixed(2)}</span>
+                  <span className="text-2xl font-bold text-text-primary font-mono">{formatINR(plan.price)}</span>
                   <span className="text-xs text-text-muted">/{plan.billingFrequency.toLowerCase().replace('ly', '')}</span>
                 </div>
                 <span className="text-[11px] text-text-secondary block mt-1">

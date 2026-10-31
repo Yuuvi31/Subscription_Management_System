@@ -3,20 +3,20 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, Building2, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, Building2, AlertCircle, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  identifier: z.string().min(1, 'Username or email is required'),
   password: z.string().min(1, 'Password is required'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export const LoginPage: React.FC = () => {
-  const { login, role } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -29,26 +29,26 @@ export const LoginPage: React.FC = () => {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: 'admin@brightloop.io',
-      password: 'Password@123',
+      identifier: 'admin',
+      password: '233135',
     },
   });
 
   const onSubmit = async (data: LoginFormData) => {
     setAuthError(null);
-    const result = await login(data.email, data.password);
+    const result = await login(data.identifier, data.password);
     if (result.success) {
-      if (role === 'ADMIN') navigate('/admin/dashboard');
-      else if (role === 'STAFF') navigate('/staff/dashboard');
+      if (result.role === 'ADMIN') navigate('/admin/dashboard');
+      else if (result.role === 'STAFF') navigate('/staff/dashboard');
       else navigate('/customer/overview');
     } else {
-      setAuthError(result.error || 'Invalid credentials. Please verify your email and password.');
+      setAuthError(result.error || 'Invalid credentials. Please verify your credentials.');
     }
   };
 
-  const handleQuickFill = (email: string) => {
-    setValue('email', email);
-    setValue('password', 'Password@123');
+  const handleFillCredentials = (identifier: string, pass: string) => {
+    setValue('identifier', identifier);
+    setValue('password', pass);
   };
 
   return (
@@ -76,13 +76,13 @@ export const LoginPage: React.FC = () => {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input
-              label="Email address"
-              type="email"
-              autoComplete="email"
-              placeholder="you@company.com"
-              leftIcon={<Mail className="w-4 h-4" />}
-              error={errors.email?.message}
-              {...register('email')}
+              label="Username or Email"
+              type="text"
+              autoComplete="username"
+              placeholder="e.g. admin, x182, or Yuvraj Dutt"
+              leftIcon={<User className="w-4 h-4" />}
+              error={errors.identifier?.message}
+              {...register('identifier')}
             />
 
             <div>
@@ -109,7 +109,7 @@ export const LoginPage: React.FC = () => {
                   to="/forgot-password"
                   className="text-xs font-medium text-primary hover:text-primary-hover"
                 >
-                  Forgot your password?
+                  Forgot password?
                 </Link>
               </div>
             </div>
@@ -124,32 +124,52 @@ export const LoginPage: React.FC = () => {
             </Button>
           </form>
 
-          {/* Quick Demo Switcher */}
-          <div className="mt-6 pt-6 border-t border-border">
-            <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2 text-center">
-              Quick Sign-in Presets
+          {/* Quick-Select Credentials Panel */}
+          <div className="mt-6 pt-5 border-t border-border">
+            <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2.5 text-center flex items-center justify-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-primary" /> Verified Role Credentials
             </p>
-            <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="space-y-2 text-xs">
               <button
                 type="button"
-                onClick={() => handleQuickFill('admin@brightloop.io')}
-                className="py-1.5 px-2 bg-gray-50 hover:bg-gray-100 border border-border rounded text-[11px] font-medium text-text-primary text-center"
+                onClick={() => handleFillCredentials('admin', '233135')}
+                className="w-full py-2 px-3 bg-gray-50 hover:bg-gray-100 border border-border rounded-md text-left flex items-center justify-between transition-colors"
               >
-                Admin
+                <div>
+                  <span className="font-semibold text-text-primary block">Admin</span>
+                  <span className="text-[11px] text-text-muted font-mono">user: admin | pass: 233135</span>
+                </div>
+                <span className="text-[10px] font-bold text-primary bg-primary-light px-2 py-0.5 rounded">
+                  Full Access
+                </span>
               </button>
+
               <button
                 type="button"
-                onClick={() => handleQuickFill('alex.staff@brightloop.io')}
-                className="py-1.5 px-2 bg-gray-50 hover:bg-gray-100 border border-border rounded text-[11px] font-medium text-text-primary text-center"
+                onClick={() => handleFillCredentials('x182', '1234')}
+                className="w-full py-2 px-3 bg-gray-50 hover:bg-gray-100 border border-border rounded-md text-left flex items-center justify-between transition-colors"
               >
-                Staff
+                <div>
+                  <span className="font-semibold text-text-primary block">Staff (Operations)</span>
+                  <span className="text-[11px] text-text-muted font-mono">user: x182 | pass: 1234</span>
+                </div>
+                <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">
+                  Staff Access
+                </span>
               </button>
+
               <button
                 type="button"
-                onClick={() => handleQuickFill('marcus@apexlogistics.com')}
-                className="py-1.5 px-2 bg-gray-50 hover:bg-gray-100 border border-border rounded text-[11px] font-medium text-text-primary text-center"
+                onClick={() => handleFillCredentials('Yuvraj Dutt', 'Yuvraj@2007')}
+                className="w-full py-2 px-3 bg-gray-50 hover:bg-gray-100 border border-border rounded-md text-left flex items-center justify-between transition-colors"
               >
-                Customer
+                <div>
+                  <span className="font-semibold text-text-primary block">Customer (Yuvraj Dutt)</span>
+                  <span className="text-[11px] text-text-muted font-mono">user: Yuvraj Dutt | pass: Yuvraj@2007</span>
+                </div>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                  Client Portal
+                </span>
               </button>
             </div>
           </div>
@@ -157,7 +177,7 @@ export const LoginPage: React.FC = () => {
           <div className="mt-6 text-center text-xs text-text-secondary">
             Don't have an account?{' '}
             <Link to="/register" className="font-semibold text-primary hover:text-primary-hover">
-              Sign up as customer
+              Sign up as new customer
             </Link>
           </div>
         </div>

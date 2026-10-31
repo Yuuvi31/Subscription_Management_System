@@ -7,6 +7,7 @@ import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { MOCK_QUOTATIONS } from '../../services/mockData';
 import { Quotation } from '../../types';
+import { formatINR } from '../../utils/formatters';
 
 export const QuotationsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -97,8 +98,8 @@ export const QuotationsPage: React.FC = () => {
                 <td className="py-3 px-4 text-text-secondary">
                   {q.lines.length} item(s): {q.lines.map(l => l.productName).join(', ')}
                 </td>
-                <td className="py-3 px-4 text-text-secondary">{q.validUntil}</td>
-                <td className="py-3 px-4 text-right font-bold text-text-primary">${q.total.toFixed(2)}</td>
+                <td className="py-3 px-4 text-secondary">{q.validUntil}</td>
+                <td className="py-3 px-4 text-right font-bold text-text-primary font-mono">{formatINR(q.total)}</td>
                 <td className="py-3 px-4">
                   <Badge variant={q.status}>{q.status}</Badge>
                 </td>
@@ -168,9 +169,9 @@ export const QuotationsPage: React.FC = () => {
                         )}
                       </td>
                       <td className="py-2 px-3 text-center">{l.quantity}</td>
-                      <td className="py-2 px-3 text-right font-mono">${l.unitPrice.toFixed(2)}</td>
+                      <td className="py-2 px-3 text-right font-mono">{formatINR(l.unitPrice)}</td>
                       <td className="py-2 px-3 text-right">{l.taxRate}%</td>
-                      <td className="py-2 px-3 text-right font-bold font-mono">${l.total.toFixed(2)}</td>
+                      <td className="py-2 px-3 text-right font-bold font-mono">{formatINR(l.total)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -182,15 +183,15 @@ export const QuotationsPage: React.FC = () => {
               <div className="w-56 space-y-1.5 text-right">
                 <div className="flex justify-between text-text-secondary">
                   <span>Subtotal:</span>
-                  <span className="font-mono">${selectedQuote.subtotal.toFixed(2)}</span>
+                  <span className="font-mono">{formatINR(selectedQuote.subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-text-secondary">
                   <span>Taxes (Estimated):</span>
-                  <span className="font-mono">+${selectedQuote.taxAmount.toFixed(2)}</span>
+                  <span className="font-mono">+{formatINR(selectedQuote.taxAmount)}</span>
                 </div>
                 <div className="flex justify-between text-sm font-bold text-text-primary pt-2 border-t border-border">
                   <span>Quotation Total:</span>
-                  <span className="font-mono">${selectedQuote.total.toFixed(2)}</span>
+                  <span className="font-mono">{formatINR(selectedQuote.total)}</span>
                 </div>
               </div>
             </div>

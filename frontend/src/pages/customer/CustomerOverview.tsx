@@ -7,6 +7,7 @@ import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { MOCK_SUBSCRIPTIONS, MOCK_INVOICES, MOCK_PAYMENTS } from '../../services/mockData';
+import { formatINR } from '../../utils/formatters';
 
 export const CustomerOverview: React.FC = () => {
   const { user } = useAuth();
@@ -65,13 +66,13 @@ export const CustomerOverview: React.FC = () => {
         />
         <StatCard
           title="Outstanding Balance"
-          value={`$${myInvoices.reduce((acc, i) => acc + i.outstandingBalance, 0).toFixed(2)}`}
+          value={formatINR(myInvoices.reduce((acc, i) => acc + i.outstandingBalance, 0))}
           subtitle="pending payment"
           icon={<Receipt className="w-5 h-5 text-danger" />}
         />
         <StatCard
           title="Total Paid"
-          value={`$${myPayments.reduce((acc, p) => acc + p.amount, 0).toFixed(2)}`}
+          value={formatINR(myPayments.reduce((acc, p) => acc + p.amount, 0))}
           subtitle="settled to date"
           icon={<CreditCard className="w-5 h-5 text-success" />}
         />
@@ -101,7 +102,7 @@ export const CustomerOverview: React.FC = () => {
             </div>
             <div>
               <span className="text-xs text-text-muted block">Recurring Amount</span>
-              <span className="text-sm font-bold text-text-primary">${activeSub.amount.toFixed(2)}</span>
+              <span className="text-sm font-bold text-text-primary font-mono">{formatINR(activeSub.amount)}</span>
             </div>
           </div>
 
@@ -114,7 +115,7 @@ export const CustomerOverview: React.FC = () => {
               size="sm"
               onClick={() => navigate('/customer/subscriptions')}
             >
-              Subscription Details
+              Manage Subscriptions & Add-ons
             </Button>
           </div>
         </Card>
@@ -147,7 +148,7 @@ export const CustomerOverview: React.FC = () => {
                   <p className="text-xs text-text-secondary mt-0.5">Due: {inv.dueDate}</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-bold text-text-primary block">${inv.total.toFixed(2)}</span>
+                  <span className="text-xs font-bold text-text-primary block font-mono">{formatINR(inv.total)}</span>
                   <button
                     onClick={() => navigate(`/customer/invoices`)}
                     className="text-xs text-primary font-medium hover:underline mt-0.5"
@@ -183,7 +184,7 @@ export const CustomerOverview: React.FC = () => {
                     <p className="text-xs text-text-secondary mt-0.5">{p.paymentDate} • {p.method.replace('_', ' ')}</p>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs font-bold text-success block">+${p.amount.toFixed(2)}</span>
+                    <span className="text-xs font-bold text-success block font-mono">+{formatINR(p.amount)}</span>
                     <Badge variant="paid">Settled</Badge>
                   </div>
                 </div>

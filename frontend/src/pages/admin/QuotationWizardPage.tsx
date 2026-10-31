@@ -24,6 +24,7 @@ import {
   MOCK_TAX_RULES,
 } from '../../services/mockData';
 import { QuotationLine } from '../../types';
+import { formatINR } from '../../utils/formatters';
 
 export const QuotationWizardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -307,7 +308,7 @@ export const QuotationWizardPage: React.FC = () => {
                   >
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-text-primary">{plan.name}</span>
-                      <span className="font-mono text-primary font-bold">${plan.price.toFixed(2)}</span>
+                      <span className="font-mono text-primary font-bold">{formatINR(plan.price)}</span>
                     </div>
                     <span className="text-[11px] text-text-muted block mt-1">
                       Billing frequency: {plan.billingFrequency} • Min qty: {plan.minQuantity}
@@ -400,7 +401,7 @@ export const QuotationWizardPage: React.FC = () => {
                       <div className="sm:col-span-2 text-right">
                         <span className="text-[11px] text-text-muted block">Line Total</span>
                         <span className="text-xs font-bold font-mono text-text-primary block mt-1">
-                          ${line.total.toFixed(2)}
+                          {formatINR(line.total)}
                         </span>
                       </div>
 
@@ -503,8 +504,8 @@ export const QuotationWizardPage: React.FC = () => {
                         {l.variantName && <span className="text-primary ml-1 font-mono text-[11px]">({l.variantName})</span>}
                       </td>
                       <td className="py-2 px-3 text-center font-mono">{l.quantity}</td>
-                      <td className="py-2 px-3 text-right font-mono">${l.unitPrice.toFixed(2)}</td>
-                      <td className="py-2 px-3 text-right font-bold font-mono">${l.total.toFixed(2)}</td>
+                      <td className="py-2 px-3 text-right font-mono">{formatINR(l.unitPrice)}</td>
+                      <td className="py-2 px-3 text-right font-bold font-mono">{formatINR(l.total)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -516,15 +517,15 @@ export const QuotationWizardPage: React.FC = () => {
               <div className="w-64 space-y-2 text-right">
                 <div className="flex justify-between text-text-secondary">
                   <span>Subtotal:</span>
-                  <span className="font-mono font-medium">${subtotal.toFixed(2)}</span>
+                  <span className="font-mono font-medium">{formatINR(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-text-secondary">
-                  <span>Standard VAT / Tax (10%):</span>
-                  <span className="font-mono font-medium">+${taxAmount.toFixed(2)}</span>
+                  <span>Standard VAT / GST (18%):</span>
+                  <span className="font-mono font-medium">+{formatINR(taxAmount)}</span>
                 </div>
                 <div className="flex justify-between text-base font-bold text-text-primary pt-2 border-t border-border">
                   <span>Proposal Total:</span>
-                  <span className="font-mono">${total.toFixed(2)}</span>
+                  <span className="font-mono">{formatINR(total)}</span>
                 </div>
               </div>
             </div>

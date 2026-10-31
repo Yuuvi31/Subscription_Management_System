@@ -239,3 +239,30 @@ export interface DashboardSummary {
   upcomingRenewals: Subscription[];
   overdueInvoicesList: Invoice[];
 }
+
+export type TicketCategory = 'BILLING' | 'SUBSCRIPTION' | 'TECHNICAL' | 'GENERAL';
+export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+
+export interface TicketMessage {
+  id: string;
+  senderName: string;
+  senderRole: UserRole;
+  message: string;
+  timestamp: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  ticketNumber: string;
+  customerId: string;
+  customerName: string;
+  subject: string;
+  category: TicketCategory;
+  priority: TicketPriority;
+  status: TicketStatus;
+  messages: TicketMessage[];
+  createdAt: string;
+  updatedAt: string;
+}
+

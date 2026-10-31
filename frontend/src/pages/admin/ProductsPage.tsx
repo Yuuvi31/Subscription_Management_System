@@ -7,6 +7,7 @@ import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
 import { MOCK_PRODUCTS } from '../../services/mockData';
 import { Product, ProductType } from '../../types';
+import { formatINR } from '../../utils/formatters';
 
 export const ProductsPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
@@ -78,11 +79,11 @@ export const ProductsPage: React.FC = () => {
               <div className="mt-4 pt-4 border-t border-border flex items-baseline justify-between">
                 <div>
                   <span className="text-[10px] text-text-muted uppercase block">Sales Price</span>
-                  <span className="text-lg font-bold text-text-primary">${prod.salesPrice.toFixed(2)}</span>
+                  <span className="text-lg font-bold text-text-primary font-mono">{formatINR(prod.salesPrice)}</span>
                 </div>
                 <div className="text-right">
                   <span className="text-[10px] text-text-muted uppercase block">Cost Price</span>
-                  <span className="text-xs font-mono text-text-secondary">${prod.costPrice.toFixed(2)}</span>
+                  <span className="text-xs font-mono text-text-secondary">{formatINR(prod.costPrice)}</span>
                 </div>
               </div>
 
@@ -95,7 +96,7 @@ export const ProductsPage: React.FC = () => {
                     {prod.variants.map((v) => (
                       <div key={v.id} className="flex items-center justify-between text-[11px]">
                         <span className="text-text-primary font-medium">{v.name}</span>
-                        <span className="font-mono text-primary font-semibold">+${v.additionalPrice.toFixed(2)}</span>
+                        <span className="font-mono text-primary font-semibold">+{formatINR(v.additionalPrice)}</span>
                       </div>
                     ))}
                   </div>

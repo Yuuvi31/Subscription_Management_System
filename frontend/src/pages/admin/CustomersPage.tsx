@@ -8,6 +8,7 @@ import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
 import { MOCK_CUSTOMERS } from '../../services/mockData';
 import { Customer } from '../../types';
+import { formatINR } from '../../utils/formatters';
 
 export const CustomersPage: React.FC = () => {
   const navigate = useNavigate();
@@ -148,11 +149,11 @@ export const CustomersPage: React.FC = () => {
                       <span
                         className={
                           c.outstandingAmount > 0
-                            ? 'font-bold text-danger'
-                            : 'text-text-secondary'
+                            ? 'font-bold text-danger font-mono'
+                            : 'text-text-secondary font-mono'
                         }
                       >
-                        ${c.outstandingAmount.toFixed(2)}
+                        {formatINR(c.outstandingAmount)}
                       </span>
                     </td>
                     <td className="py-3 px-4">
