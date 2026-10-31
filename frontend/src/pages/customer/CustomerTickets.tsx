@@ -4,9 +4,9 @@ import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
-import { MOCK_TICKETS } from '../../services/mockData';
-import { SupportTicket, TicketCategory, TicketPriority, TicketMessage } from '../../types';
+import { SupportTicket, TicketCategory, TicketPriority } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { useData } from '../../context/DataContext';
 import {
   LifeBuoy,
   Plus,
@@ -21,8 +21,13 @@ import {
 
 export const CustomerTickets: React.FC = () => {
   const { user } = useAuth();
-  const [tickets, setTickets] = useState<SupportTicket[]>(MOCK_TICKETS);
-  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(tickets[0]);
+  const { tickets, addTicket, replyTicket } = useData();
+
+  const myTickets = tickets.filter(
+    (t) => t.customerName.toLowerCase().includes(user?.name.toLowerCase() || 'yuvraj') || t.customerId === 'cust-01'
+  );
+
+  const [selectedTicketId, setSelectedTicketId] = useState<string>(myTickets[0]?.id || '');
   const [isNewTicketOpen, setIsNewTicketOpen] = useState(false);
 
   // New Ticket Form State
@@ -34,34 +39,21 @@ export const CustomerTickets: React.FC = () => {
   // Reply message in chat
   const [replyText, setReplyText] = useState('');
 
+  const selectedTicket = myTickets.find((t) => t.id === selectedTicketId) || myTickets[0] || null;
+
   const handleCreateTicket = (e: React.FormEvent) => {
     e.preventDefault();
     if (!subject || !initialMessage) return;
 
-    const newTicket: SupportTicket = {
-      id: `tkt-${Date.now()}`,
-      ticketNumber: `TKT-2026-00${tickets.length + 95}`,
-      customerId: 'cust-01',
-      customerName: user?.name || 'Yuvraj Dutt',
+    const newTicket = addTicket(
       subject,
       category,
       priority,
-      status: 'OPEN',
-      messages: [
-        {
-          id: `msg-${Date.now()}`,
-          senderName: user?.name || 'Yuvraj Dutt',
-          senderRole: 'CUSTOMER',
-          message: initialMessage,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ],
-      createdAt: new Date().toISOString().split('T')[0],
-      updatedAt: new Date().toISOString().split('T')[0],
-    };
+      initialMessage,
+      user?.name || 'Yuvraj Dutt'
+    );
 
-    setTickets([newTicket, ...tickets]);
-    setSelectedTicket(newTicket);
+    setSelectedTicketId(newTicket.id);
     setIsNewTicketOpen(false);
     setSubject('');
     setInitialMessage('');
@@ -71,35 +63,20 @@ export const CustomerTickets: React.FC = () => {
     e.preventDefault();
     if (!replyText.trim() || !selectedTicket) return;
 
-    const newMsg: TicketMessage = {
-      id: `msg-${Date.now()}`,
-      senderName: user?.name || 'Yuvraj Dutt',
-      senderRole: 'CUSTOMER',
-      message: replyText.trim(),
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    const updated = {
-      ...selectedTicket,
-      messages: [...selectedTicket.messages, newMsg],
-      updatedAt: new Date().toISOString().split('T')[0],
-    };
-
-    setTickets(tickets.map((t) => (t.id === selectedTicket.id ? updated : t)));
-    setSelectedTicket(updated);
+    replyTicket(selectedTicket.id, replyText.trim(), user?.name || 'Yuvraj Dutt', 'CUSTOMER');
     setReplyText('');
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-            Direct Support & Help Desk
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            Customer Support & Inquiries
           </h1>
-          <p className="text-xs text-text-secondary mt-1">
-            Talk directly with Brightloop internal staff and system administrators
+          <p className="text-xs text-slate-500 mt-1">
+            Connect directly with Brightloop Software operations and finance managers for ticket resolutions
           </p>
         </div>
 
@@ -113,85 +90,88 @@ export const CustomerTickets: React.FC = () => {
         </Button>
       </div>
 
-      {/* Main Split Interface: Tickets list on left, Active conversation thread on right */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Ticket List (Left 5 cols) */}
-        <div className="lg:col-span-5 space-y-3">
-          <span className="text-xs font-semibold text-text-muted uppercase tracking-wider block">
-            Your Active Support Inquiries ({tickets.length})
-          </span>
+      {/* Main Ticket Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left: Ticket List */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Your Inquiries ({myTickets.length})
+            </h3>
+          </div>
 
-          {tickets.map((ticket) => {
-            const isSelected = selectedTicket?.id === ticket.id;
-            return (
-              <div
-                key={ticket.id}
-                onClick={() => setSelectedTicket(ticket)}
-                className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                  isSelected
-                    ? 'border-primary bg-primary-light/30 shadow-subtle ring-1 ring-primary'
-                    : 'border-border bg-white hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-text-primary">
-                    {ticket.ticketNumber}
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-gray-100 text-text-secondary">
-                      {ticket.category}
+          <div className="space-y-2 max-h-[600px] overflow-y-auto">
+            {myTickets.length === 0 ? (
+              <div className="p-6 bg-white border border-slate-200 rounded-lg text-center">
+                <MessageSquare className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-xs text-slate-500">No support tickets found.</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => setIsNewTicketOpen(true)}
+                >
+                  Raise First Ticket
+                </Button>
+              </div>
+            ) : (
+              myTickets.map((ticket) => (
+                <div
+                  key={ticket.id}
+                  onClick={() => setSelectedTicketId(ticket.id)}
+                  className={`p-3.5 rounded-lg border text-left cursor-pointer transition-all ${
+                    selectedTicket?.id === ticket.id
+                      ? 'border-indigo-600 bg-indigo-50/50 shadow-sm ring-1 ring-indigo-600'
+                      : 'border-slate-200 hover:border-slate-300 bg-white'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="font-mono text-[11px] font-bold text-indigo-700">
+                      {ticket.ticketNumber}
                     </span>
-                    <Badge variant={ticket.status === 'RESOLVED' ? 'paid' : ticket.status === 'IN_PROGRESS' ? 'confirmed' : 'draft'}>
-                      {ticket.status.replace('_', ' ')}
+                    <Badge variant={ticket.status === 'RESOLVED' ? 'PAID' : ticket.status === 'IN_PROGRESS' ? 'ACTIVE' : 'DRAFT'}>
+                      {ticket.status}
                     </Badge>
                   </div>
+
+                  <h4 className="text-xs font-bold text-slate-900 line-clamp-1">{ticket.subject}</h4>
+
+                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                    <span className="capitalize">{ticket.category.toLowerCase()} • {ticket.priority.toLowerCase()}</span>
+                    <span>{ticket.updatedAt}</span>
+                  </div>
                 </div>
-
-                <h4 className="text-xs font-bold text-text-primary mt-1.5 line-clamp-1">
-                  {ticket.subject}
-                </h4>
-
-                <p className="text-[11px] text-text-secondary mt-1 line-clamp-2">
-                  {ticket.messages[ticket.messages.length - 1]?.message}
-                </p>
-
-                <div className="mt-3 pt-2.5 border-t border-border flex items-center justify-between text-[11px] text-text-muted">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> {ticket.updatedAt}
-                  </span>
-                  <span>{ticket.messages.length} message(s)</span>
-                </div>
-              </div>
-            );
-          })}
+              ))
+            )}
+          </div>
         </div>
 
-        {/* Conversation Thread (Right 7 cols) */}
-        <div className="lg:col-span-7">
+        {/* Right: Active Ticket Thread */}
+        <div className="lg:col-span-2">
           {selectedTicket ? (
-            <Card className="flex flex-col h-[600px] p-0 overflow-hidden">
-              {/* Thread Header */}
-              <div className="p-4 border-b border-border bg-[#FBFBFC] flex items-center justify-between shrink-0">
+            <Card className="h-full flex flex-col justify-between p-0 overflow-hidden">
+              {/* Ticket Header */}
+              <div className="p-4 border-b border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-primary">
-                      {selectedTicket.ticketNumber}
-                    </span>
-                    <Badge variant={selectedTicket.status === 'RESOLVED' ? 'paid' : 'confirmed'}>
-                      {selectedTicket.status.replace('_', ' ')}
+                    <span className="font-mono text-xs font-bold text-indigo-700">{selectedTicket.ticketNumber}</span>
+                    <Badge variant={selectedTicket.status === 'RESOLVED' ? 'PAID' : 'ACTIVE'}>
+                      {selectedTicket.status}
                     </Badge>
+                    <span className="text-xs text-slate-400">|</span>
+                    <span className="text-xs text-slate-600 font-medium">Category: {selectedTicket.category}</span>
                   </div>
-                  <h3 className="text-sm font-bold text-text-primary mt-1">{selectedTicket.subject}</h3>
+                  <h2 className="text-sm font-bold text-slate-900 mt-1">{selectedTicket.subject}</h2>
                 </div>
 
-                <div className="text-right text-[11px] text-text-muted">
-                  <span className="block font-semibold uppercase text-[10px]">Priority: {selectedTicket.priority}</span>
-                  <span>Category: {selectedTicket.category}</span>
+                <div className="text-right text-xs text-slate-500">
+                  <span>Priority: </span>
+                  <span className="font-semibold text-slate-700 capitalize">{selectedTicket.priority.toLowerCase()}</span>
                 </div>
               </div>
 
-              {/* Chat Messages Body */}
-              <div className="p-5 flex-1 overflow-y-auto space-y-4 bg-background/50">
+              {/* Chat Thread */}
+              <div className="p-4 space-y-3 overflow-y-auto max-h-[420px] bg-slate-50/30 flex-1">
                 {selectedTicket.messages.map((m) => {
                   const isMe = m.senderRole === 'CUSTOMER';
                   return (
@@ -199,20 +179,18 @@ export const CustomerTickets: React.FC = () => {
                       key={m.id}
                       className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
                     >
-                      <div className="flex items-center gap-1.5 mb-1 text-[11px]">
-                        <span className="font-semibold text-text-primary">{m.senderName}</span>
-                        {!isMe && (
-                          <span className="text-[10px] font-bold text-primary bg-primary-light px-1.5 py-0.2 rounded font-mono">
-                            {m.senderRole}
-                          </span>
-                        )}
-                        <span className="text-text-muted text-[10px]">{m.timestamp}</span>
+                      <div className="flex items-center gap-2 mb-1 text-[11px] text-slate-500">
+                        <span className="font-semibold text-slate-900">{m.senderName}</span>
+                        <span className="text-[10px] bg-slate-100 px-1.5 py-0.2 rounded font-mono">
+                          {m.senderRole}
+                        </span>
+                        <span>• {m.timestamp}</span>
                       </div>
                       <div
-                        className={`p-3.5 rounded-xl text-xs max-w-md shadow-subtle ${
+                        className={`p-3 rounded-lg max-w-lg text-xs leading-relaxed ${
                           isMe
-                            ? 'bg-primary text-white rounded-br-none'
-                            : 'bg-white border border-border text-text-primary rounded-bl-none'
+                            ? 'bg-indigo-600 text-white rounded-br-none shadow-sm'
+                            : 'bg-white border border-slate-200 text-slate-900 rounded-bl-none shadow-sm'
                         }`}
                       >
                         {m.message}
@@ -222,94 +200,114 @@ export const CustomerTickets: React.FC = () => {
                 })}
               </div>
 
-              {/* Send Reply Input */}
-              <form onSubmit={handleSendReply} className="p-3 border-t border-border bg-white flex items-center gap-2 shrink-0">
+              {/* Reply Box */}
+              <form onSubmit={handleSendReply} className="p-3 bg-white border-t border-slate-200 flex gap-2">
                 <input
                   type="text"
-                  placeholder="Type your message to staff or admin..."
+                  placeholder="Type a message or question for Brightloop support team..."
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
-                  className="flex-1 text-xs border border-border rounded-lg px-3.5 py-2.5 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                  className="flex-1 text-xs border border-slate-200 rounded-md px-3 py-2 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:bg-white"
                 />
-                <Button type="submit" variant="primary" size="md" leftIcon={<Send className="w-3.5 h-3.5" />}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  type="submit"
+                  leftIcon={<Send className="w-3.5 h-3.5" />}
+                  disabled={!replyText.trim()}
+                >
                   Send
                 </Button>
               </form>
             </Card>
           ) : (
-            <div className="h-64 flex items-center justify-center border border-border border-dashed rounded-lg text-text-muted text-xs">
-              Select a ticket to view the conversation.
+            <div className="h-full flex items-center justify-center p-12 text-center text-xs text-slate-400 bg-white rounded-lg border border-slate-200">
+              Select an inquiry to view replies or raise a new ticket.
             </div>
           )}
         </div>
       </div>
 
-      {/* Raise New Ticket Modal */}
+      {/* New Ticket Modal */}
       {isNewTicketOpen && (
         <Modal
           isOpen={isNewTicketOpen}
           onClose={() => setIsNewTicketOpen(false)}
           title="Raise Support Ticket"
-          subtitle="Your message will be delivered immediately to Brightloop staff and administrators"
+          subtitle="Our engineering and operations team will respond promptly"
+          maxWidth="md"
         >
           <form onSubmit={handleCreateTicket} className="space-y-4 text-xs">
             <Input
               label="Subject / Topic"
-              placeholder="e.g. Request to upgrade Odoo connector or GST invoice inquiry"
+              placeholder="e.g. Assistance with Odoo connector or Invoice breakdown"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               required
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-text-primary mb-1.5">Category</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  Category
+                </label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value as TicketCategory)}
-                  className="w-full text-xs border border-border rounded-md p-2 bg-white"
+                  className="w-full text-xs border border-slate-200 rounded-md px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-600"
                 >
                   <option value="SUBSCRIPTION">Subscription / Add-ons</option>
-                  <option value="BILLING">Billing & Invoices</option>
-                  <option value="TECHNICAL">Technical / API Integration</option>
+                  <option value="BILLING">Billing & Invoice Query</option>
+                  <option value="TECHNICAL">Technical Integration</option>
                   <option value="GENERAL">General Inquiries</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-text-primary mb-1.5">Priority Level</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  Urgency / Priority
+                </label>
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as TicketPriority)}
-                  className="w-full text-xs border border-border rounded-md p-2 bg-white"
+                  className="w-full text-xs border border-slate-200 rounded-md px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-600"
                 >
                   <option value="LOW">Low</option>
                   <option value="MEDIUM">Medium</option>
                   <option value="HIGH">High (Urgent)</option>
-                  <option value="URGENT">Critical</option>
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-text-primary mb-1.5">
-                Describe your issue or request
+              <label className="text-xs font-semibold text-slate-700 block mb-1">
+                Detailed Message
               </label>
               <textarea
                 rows={4}
+                placeholder="Explain what assistance or configuration change you require..."
                 value={initialMessage}
                 onChange={(e) => setInitialMessage(e.target.value)}
-                placeholder="Explain the assistance required. Staff and admin will review and respond directly..."
-                className="w-full text-xs border border-border rounded-md p-2.5 focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full text-xs border border-slate-200 rounded-md p-2.5 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-600"
                 required
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-4 border-t border-border">
-              <Button type="button" variant="outline" size="sm" onClick={() => setIsNewTicketOpen(false)}>
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={() => setIsNewTicketOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button type="submit" variant="primary" size="sm">
+              <Button
+                variant="primary"
+                size="sm"
+                type="submit"
+                leftIcon={<Send className="w-3.5 h-3.5" />}
+              >
                 Submit Ticket
               </Button>
             </div>

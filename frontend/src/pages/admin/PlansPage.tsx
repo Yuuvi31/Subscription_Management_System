@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { CalendarDays, Plus, Check, X, Clock, Settings2 } from 'lucide-react';
+import { CalendarDays, Plus, Check, X } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
-import { MOCK_PLANS } from '../../services/mockData';
+import { useData } from '../../context/DataContext';
 import { Plan, BillingFrequency } from '../../types';
 import { formatINR } from '../../utils/formatters';
 
 export const PlansPage: React.FC = () => {
-  const [plans, setPlans] = useState<Plan[]>(MOCK_PLANS);
+  const { plans, addPlan } = useData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -30,8 +30,7 @@ export const PlansPage: React.FC = () => {
     e.preventDefault();
     if (!formData.name || formData.price <= 0) return;
 
-    const newPlan: Plan = {
-      id: `plan-${Date.now()}`,
+    addPlan({
       name: formData.name,
       description: formData.description,
       price: Number(formData.price),
@@ -44,21 +43,33 @@ export const PlansPage: React.FC = () => {
       allowPause: formData.allowPause,
       allowRenewal: formData.allowRenewal,
       status: 'ACTIVE',
-    };
+    });
 
-    setPlans([newPlan, ...plans]);
     setIsModalOpen(false);
+    setFormData({
+      name: '',
+      description: '',
+      price: 0,
+      billingFrequency: 'MONTHLY',
+      minQuantity: 1,
+      availableFrom: '2026-01-01',
+      availableUntil: '',
+      autoClosure: false,
+      allowEarlyClosure: true,
+      allowPause: true,
+      allowRenewal: true,
+    });
   };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
             Subscription Plans
           </h1>
-          <p className="text-xs text-text-secondary mt-1">
-            Cadence models (Daily, Weekly, Monthly, Yearly), minimum commitments, and lifecycle rules
+          <p className="text-xs text-slate-500 mt-1">
+            Billing cycles (Daily, Weekly, Monthly, Yearly), minimum seat quantities, and lifecycle rules.
           </p>
         </div>
 
@@ -72,61 +83,72 @@ export const PlansPage: React.FC = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {plans.map((plan) => (
-          <Card key={plan.id} className="flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-mono text-[10px] bg-primary-light text-primary font-bold px-2 py-0.5 rounded uppercase">
-                  {plan.billingFrequency}
-                </span>
-                <Badge variant={plan.status}>{plan.status}</Badge>
+      {plans.length === 0 ? (
+        <Card className="p-12 text-center border-dashed">
+          <CalendarDays className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+          <h3 className="text-sm font-semibold text-slate-800">No subscription plans created yet</h3>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-4">
+            Configure your commercial plans with billing cadences and renewal rules to prepare quotations.
+          </p>
+          <Button variant="primary" size="sm" onClick={() => setIsModalOpen(true)}>
+            Create Your First Plan
+          </Button>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {plans.map((plan) => (
+            <Card key={plan.id} className="flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-mono text-[10px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded uppercase">
+                    {plan.billingFrequency}
+                  </span>
+                  <Badge variant={plan.status}>{plan.status}</Badge>
+                </div>
+
+                <h3 className="text-base font-bold text-slate-900 mt-1">{plan.name}</h3>
+                <p className="text-xs text-slate-500 mt-1 min-h-[32px] line-clamp-2">{plan.description}</p>
+
+                <div className="mt-4 pt-4 border-t border-slate-100">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Plan Base Rate</span>
+                  <div className="flex items-baseline gap-1 mt-0.5">
+                    <span className="text-2xl font-bold text-slate-900 font-mono">{formatINR(plan.price)}</span>
+                    <span className="text-xs text-slate-500">/{plan.billingFrequency.toLowerCase().replace('ly', '')}</span>
+                  </div>
+                  <span className="text-[11px] text-slate-500 block mt-1">
+                    Min quantity: <strong className="text-slate-800 font-mono">{plan.minQuantity} seat(s)</strong>
+                  </span>
+                </div>
+
+                {/* Lifecycle Rules */}
+                <div className="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-[11px]">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Auto-close on expiration:</span>
+                    {plan.autoClosure ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <X className="w-3.5 h-3.5 text-slate-300" />}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Early closure permitted:</span>
+                    {plan.allowEarlyClosure ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <X className="w-3.5 h-3.5 text-slate-300" />}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Pause allowed:</span>
+                    {plan.allowPause ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <X className="w-3.5 h-3.5 text-slate-300" />}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Contract renewal permitted:</span>
+                    {plan.allowRenewal ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <X className="w-3.5 h-3.5 text-slate-300" />}
+                  </div>
+                </div>
               </div>
 
-              <h3 className="text-base font-bold text-text-primary mt-1">{plan.name}</h3>
-              <p className="text-xs text-text-secondary mt-1 line-clamp-2 min-h-[32px]">{plan.description}</p>
-
-              <div className="mt-4 pt-4 border-t border-border">
-                <span className="text-[10px] text-text-muted uppercase block">Plan Recurring Base</span>
-                <div className="flex items-baseline gap-1 mt-0.5">
-                  <span className="text-2xl font-bold text-text-primary font-mono">{formatINR(plan.price)}</span>
-                  <span className="text-xs text-text-muted">/{plan.billingFrequency.toLowerCase().replace('ly', '')}</span>
-                </div>
-                <span className="text-[11px] text-text-secondary block mt-1">
-                  Min quantity: <strong className="text-text-primary">{plan.minQuantity} seat(s)</strong>
-                </span>
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                <span>Available from: {plan.availableFrom}</span>
+                <span className="font-mono text-[11px] text-slate-500">{plan.id}</span>
               </div>
-
-              {/* Lifecycle Flags */}
-              <div className="mt-4 pt-3 border-t border-border space-y-1.5 text-[11px]">
-                <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">Auto-Closure on expiry:</span>
-                  {plan.autoClosure ? <Check className="w-3.5 h-3.5 text-success" /> : <X className="w-3.5 h-3.5 text-text-muted" />}
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">Early closure allowed:</span>
-                  {plan.allowEarlyClosure ? <Check className="w-3.5 h-3.5 text-success" /> : <X className="w-3.5 h-3.5 text-text-muted" />}
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">Pause allowed:</span>
-                  {plan.allowPause ? <Check className="w-3.5 h-3.5 text-success" /> : <X className="w-3.5 h-3.5 text-text-muted" />}
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">Renewal allowed:</span>
-                  {plan.allowRenewal ? <Check className="w-3.5 h-3.5 text-success" /> : <X className="w-3.5 h-3.5 text-text-muted" />}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs">
-              <span className="text-[11px] text-text-muted">From: {plan.availableFrom}</span>
-              <Button variant="ghost" size="sm">
-                Edit
-              </Button>
-            </div>
-          </Card>
-        ))}
-      </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Add Plan Modal */}
       <Modal
@@ -139,28 +161,28 @@ export const PlansPage: React.FC = () => {
         <form onSubmit={handleCreatePlan} className="space-y-4 text-xs">
           <Input
             label="Plan Name"
-            placeholder="e.g. Enterprise Tier Annual Contract"
+            placeholder="e.g. Standard Business Monthly"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
           />
 
           <div>
-            <label className="block text-xs font-medium text-text-primary mb-1.5">
+            <label className="block text-xs font-medium text-slate-800 mb-1.5">
               Plan Description
             </label>
             <textarea
               rows={2}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Commercial terms and bundled allowances..."
-              className="w-full rounded-md border border-border text-xs text-text-primary p-2.5 focus:outline-none focus:ring-1 focus:ring-primary"
+              placeholder="Commercial terms, included features, and tenant allowances..."
+              className="w-full rounded-md border border-slate-200 text-xs text-slate-900 p-2.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Input
-              label="Price ($)"
+              label="Price (INR)"
               type="number"
               step="0.01"
               value={formData.price}
@@ -168,13 +190,13 @@ export const PlansPage: React.FC = () => {
               required
             />
             <div>
-              <label className="block text-xs font-medium text-text-primary mb-1.5">
-                Billing Frequency
+              <label className="block text-xs font-medium text-slate-800 mb-1.5">
+                Billing Cadence
               </label>
               <select
                 value={formData.billingFrequency}
                 onChange={(e) => setFormData({ ...formData, billingFrequency: e.target.value as BillingFrequency })}
-                className="w-full rounded-md border border-border text-xs text-text-primary bg-white py-2 px-3 focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full rounded-md border border-slate-200 text-xs text-slate-900 bg-white py-2 px-3 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               >
                 <option value="DAILY">DAILY</option>
                 <option value="WEEKLY">WEEKLY</option>
@@ -183,7 +205,7 @@ export const PlansPage: React.FC = () => {
               </select>
             </div>
             <Input
-              label="Minimum Quantity"
+              label="Minimum Seats / Qty"
               type="number"
               min={1}
               value={formData.minQuantity}
@@ -209,49 +231,49 @@ export const PlansPage: React.FC = () => {
           </div>
 
           {/* Lifecycle Toggles */}
-          <div className="bg-gray-50 p-3 rounded-lg border border-border space-y-2">
-            <span className="font-semibold text-text-primary block mb-1">
-              Lifecycle Permissions & Auto-Rules:
+          <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-200 space-y-2">
+            <span className="font-semibold text-slate-800 block mb-1">
+              Lifecycle Permissions:
             </span>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={formData.autoClosure}
                 onChange={(e) => setFormData({ ...formData, autoClosure: e.target.checked })}
-                className="rounded border-border text-primary focus:ring-primary"
+                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
               />
-              <span className="text-text-primary">Auto-close subscription automatically on expiration date</span>
+              <span className="text-slate-700">Auto-close subscription when expiry date is reached</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={formData.allowEarlyClosure}
                 onChange={(e) => setFormData({ ...formData, allowEarlyClosure: e.target.checked })}
-                className="rounded border-border text-primary focus:ring-primary"
+                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
               />
-              <span className="text-text-primary">Allow customer or staff early closure</span>
+              <span className="text-slate-700">Allow early cancellation</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={formData.allowPause}
                 onChange={(e) => setFormData({ ...formData, allowPause: e.target.checked })}
-                className="rounded border-border text-primary focus:ring-primary"
+                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
               />
-              <span className="text-text-primary">Allow pausing subscriptions</span>
+              <span className="text-slate-700">Allow customers and staff to pause billing</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={formData.allowRenewal}
                 onChange={(e) => setFormData({ ...formData, allowRenewal: e.target.checked })}
-                className="rounded border-border text-primary focus:ring-primary"
+                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
               />
-              <span className="text-text-primary">Allow contract renewal when term completes</span>
+              <span className="text-slate-700">Allow contract extension and renewal</span>
             </label>
           </div>
 
-          <div className="flex justify-end gap-2 pt-4 border-t border-border">
+          <div className="flex justify-end gap-2 pt-4 border-t border-slate-200">
             <Button
               type="button"
               variant="outline"

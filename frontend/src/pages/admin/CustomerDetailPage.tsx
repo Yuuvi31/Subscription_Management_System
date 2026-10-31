@@ -6,7 +6,6 @@ import {
   Mail,
   Phone,
   MapPin,
-  Calendar,
   Repeat,
   Receipt,
   CreditCard,
@@ -16,26 +15,39 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { StatCard } from '../../components/ui/StatCard';
-import { MOCK_CUSTOMERS, MOCK_SUBSCRIPTIONS, MOCK_INVOICES, MOCK_PAYMENTS } from '../../services/mockData';
+import { useData } from '../../context/DataContext';
 import { formatINR } from '../../utils/formatters';
 
 export const CustomerDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'subscriptions' | 'invoices' | 'payments' | 'activity'>('subscriptions');
+  const { customers, subscriptions: allSubs, invoices: allInvs, payments: allPays } = useData();
+  const [activeTab, setActiveTab] = useState<'subscriptions' | 'invoices' | 'payments'>('subscriptions');
 
-  const customer = MOCK_CUSTOMERS.find((c) => c.id === id) || MOCK_CUSTOMERS[0];
-  const subscriptions = MOCK_SUBSCRIPTIONS.filter((s) => s.customerId === customer.id);
-  const invoices = MOCK_INVOICES.filter((i) => i.customerId === customer.id);
-  const payments = MOCK_PAYMENTS.filter((p) => p.customerId === customer.id);
+  const customer = customers.find((c) => c.id === id);
+
+  if (!customer) {
+    return (
+      <div className="p-8 text-center bg-white rounded-xl border border-slate-200">
+        <p className="text-slate-600 text-sm">Customer account not found.</p>
+        <Button variant="outline" size="sm" className="mt-3" onClick={() => navigate('/admin/customers')}>
+          Return to Customers
+        </Button>
+      </div>
+    );
+  }
+
+  const subscriptions = allSubs.filter((s) => s.customerId === customer.id);
+  const invoices = allInvs.filter((i) => i.customerId === customer.id);
+  const payments = allPays.filter((p) => p.customerId === customer.id);
 
   return (
     <div className="space-y-6">
-      {/* Back button & Page Title */}
+      {/* Header */}
       <div>
         <button
           onClick={() => navigate('/admin/customers')}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary hover:text-text-primary mb-3"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-900 mb-3 transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Customers
         </button>
@@ -43,79 +55,71 @@ export const CustomerDetailPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                 {customer.name}
               </h1>
               <Badge variant={customer.status}>{customer.status}</Badge>
             </div>
-            <p className="text-xs text-text-secondary mt-1 flex items-center gap-2">
-              <Building className="w-3.5 h-3.5" /> {customer.company} • Registered {customer.createdAt}
+            <p className="text-xs text-slate-500 mt-1 flex items-center gap-2">
+              <Building className="w-3.5 h-3.5 text-slate-400" /> {customer.company} • Added {customer.createdAt}
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              leftIcon={<Receipt className="w-3.5 h-3.5" />}
-              onClick={() => navigate('/admin/invoices')}
-            >
-              Issue Invoice
-            </Button>
             <Button
               variant="primary"
               size="sm"
               leftIcon={<Plus className="w-3.5 h-3.5" />}
               onClick={() => navigate('/admin/quotations/new')}
             >
-              New Quotation
+              Draft Quotation
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Overview Cards */}
+      {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <StatCard
-          title="Active Subscriptions"
+          title="Active Contracts"
           value={customer.activeSubscriptions}
-          subtitle={`Total: ${customer.totalSubscriptions}`}
-          icon={<Repeat className="w-5 h-5 text-primary" />}
+          subtitle={`Total: ${customer.totalSubscriptions} on record`}
+          icon={<Repeat className="w-5 h-5 text-indigo-600" />}
         />
         <StatCard
           title="Outstanding Dues"
           value={formatINR(customer.outstandingAmount)}
-          subtitle="pending invoices"
-          icon={<Receipt className="w-5 h-5 text-danger" />}
+          subtitle="Unpaid billing balance"
+          icon={<Receipt className="w-5 h-5 text-red-600" />}
         />
         <StatCard
           title="Total Paid"
           value={formatINR(payments.reduce((acc, p) => acc + p.amount, 0))}
-          subtitle="lifetime collections"
-          icon={<CreditCard className="w-5 h-5 text-success" />}
+          subtitle="Settled receipts"
+          icon={<CreditCard className="w-5 h-5 text-emerald-600" />}
         />
-        <div className="bg-card rounded-lg border border-border p-5 shadow-subtle text-xs space-y-1.5">
-          <span className="font-semibold text-text-muted uppercase tracking-wider text-[10px] block">Contact Details</span>
-          <p className="text-text-primary font-medium flex items-center gap-1.5">
-            <Mail className="w-3.5 h-3.5 text-text-muted" /> {customer.email}
+        <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-subtle text-xs space-y-1.5">
+          <span className="font-semibold text-slate-400 uppercase tracking-wider text-[10px] block">Contact Profile</span>
+          <p className="text-slate-900 font-medium flex items-center gap-1.5 truncate">
+            <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {customer.email}
           </p>
-          <p className="text-text-secondary flex items-center gap-1.5">
-            <Phone className="w-3.5 h-3.5 text-text-muted" /> {customer.phone}
+          <p className="text-slate-600 flex items-center gap-1.5">
+            <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {customer.phone}
           </p>
-          <p className="text-text-secondary flex items-center gap-1.5">
-            <MapPin className="w-3.5 h-3.5 text-text-muted" /> {customer.address}
+          <p className="text-slate-600 flex items-center gap-1.5 truncate">
+            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {customer.address}
           </p>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-border flex gap-6 text-xs font-medium">
+      <div className="border-b border-slate-200 flex gap-6 text-xs font-medium">
         <button
           onClick={() => setActiveTab('subscriptions')}
           className={`pb-3 transition-colors border-b-2 ${
             activeTab === 'subscriptions'
-              ? 'border-primary text-primary font-semibold'
-              : 'border-transparent text-text-secondary hover:text-text-primary'
+              ? 'border-indigo-600 text-indigo-600 font-semibold'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
           }`}
         >
           Subscriptions ({subscriptions.length})
@@ -124,8 +128,8 @@ export const CustomerDetailPage: React.FC = () => {
           onClick={() => setActiveTab('invoices')}
           className={`pb-3 transition-colors border-b-2 ${
             activeTab === 'invoices'
-              ? 'border-primary text-primary font-semibold'
-              : 'border-transparent text-text-secondary hover:text-text-primary'
+              ? 'border-indigo-600 text-indigo-600 font-semibold'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
           }`}
         >
           Invoices ({invoices.length})
@@ -134,21 +138,11 @@ export const CustomerDetailPage: React.FC = () => {
           onClick={() => setActiveTab('payments')}
           className={`pb-3 transition-colors border-b-2 ${
             activeTab === 'payments'
-              ? 'border-primary text-primary font-semibold'
-              : 'border-transparent text-text-secondary hover:text-text-primary'
+              ? 'border-indigo-600 text-indigo-600 font-semibold'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
           }`}
         >
           Payments ({payments.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('activity')}
-          className={`pb-3 transition-colors border-b-2 ${
-            activeTab === 'activity'
-              ? 'border-primary text-primary font-semibold'
-              : 'border-transparent text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          Activity Log
         </button>
       </div>
 
@@ -156,10 +150,10 @@ export const CustomerDetailPage: React.FC = () => {
       {activeTab === 'subscriptions' && (
         <Card className="overflow-hidden p-0">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#F7F8FA] border-b border-border text-text-secondary uppercase font-semibold">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[10px] tracking-wider">
               <tr>
                 <th className="py-3 px-4">Subscription #</th>
-                <th className="py-3 px-4">Plan</th>
+                <th className="py-3 px-4">Plan Name</th>
                 <th className="py-3 px-4">Billing Frequency</th>
                 <th className="py-3 px-4">Next Billing Date</th>
                 <th className="py-3 px-4 text-right">Amount</th>
@@ -167,24 +161,32 @@ export const CustomerDetailPage: React.FC = () => {
                 <th className="py-3 px-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
-              {subscriptions.map((sub) => (
-                <tr key={sub.id} className="hover:bg-gray-50/60 transition-colors">
-                  <td className="py-3 px-4 font-mono font-medium text-text-primary">{sub.subscriptionNumber}</td>
-                  <td className="py-3 px-4 font-semibold text-text-primary">{sub.planName}</td>
-                  <td className="py-3 px-4 capitalize">{sub.billingFrequency.toLowerCase()}</td>
-                  <td className="py-3 px-4">{sub.nextBillingDate}</td>
-                  <td className="py-3 px-4 text-right font-bold text-text-primary font-mono">{formatINR(sub.amount)}</td>
-                  <td className="py-3 px-4">
-                    <Badge variant={sub.status}>{sub.status}</Badge>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => navigate(`/admin/subscriptions/${sub.id}`)}>
-                      Manage
-                    </Button>
+            <tbody className="divide-y divide-slate-100">
+              {subscriptions.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-slate-400">
+                    No active subscriptions on file for this customer.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                subscriptions.map((sub) => (
+                  <tr key={sub.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-3 px-4 font-mono font-medium text-slate-900">{sub.subscriptionNumber}</td>
+                    <td className="py-3 px-4 font-semibold text-slate-900">{sub.planName}</td>
+                    <td className="py-3 px-4 capitalize">{sub.billingFrequency.toLowerCase()}</td>
+                    <td className="py-3 px-4 text-slate-600 font-mono">{sub.nextBillingDate}</td>
+                    <td className="py-3 px-4 text-right font-bold text-slate-900 font-mono">{formatINR(sub.amount)}</td>
+                    <td className="py-3 px-4">
+                      <Badge variant={sub.status}>{sub.status}</Badge>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <Button variant="ghost" size="sm" onClick={() => navigate(`/admin/subscriptions/${sub.id}`)}>
+                        Manage
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </Card>
@@ -193,7 +195,7 @@ export const CustomerDetailPage: React.FC = () => {
       {activeTab === 'invoices' && (
         <Card className="overflow-hidden p-0">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#F7F8FA] border-b border-border text-text-secondary uppercase font-semibold">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[10px] tracking-wider">
               <tr>
                 <th className="py-3 px-4">Invoice #</th>
                 <th className="py-3 px-4">Issue Date</th>
@@ -204,24 +206,32 @@ export const CustomerDetailPage: React.FC = () => {
                 <th className="py-3 px-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
-              {invoices.map((inv) => (
-                <tr key={inv.id} className="hover:bg-gray-50/60 transition-colors">
-                  <td className="py-3 px-4 font-mono font-medium text-text-primary">{inv.invoiceNumber}</td>
-                  <td className="py-3 px-4">{inv.issueDate}</td>
-                  <td className="py-3 px-4">{inv.dueDate}</td>
-                  <td className="py-3 px-4 text-right font-bold font-mono">{formatINR(inv.total)}</td>
-                  <td className="py-3 px-4 text-right font-semibold text-danger font-mono">{formatINR(inv.outstandingBalance)}</td>
-                  <td className="py-3 px-4">
-                    <Badge variant={inv.status}>{inv.status}</Badge>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <Button variant="ghost" size="sm" onClick={() => navigate(`/admin/invoices/${inv.id}`)}>
-                      View
-                    </Button>
+            <tbody className="divide-y divide-slate-100">
+              {invoices.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-slate-400">
+                    No invoices issued for this customer.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                invoices.map((inv) => (
+                  <tr key={inv.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-3 px-4 font-mono font-medium text-slate-900">{inv.invoiceNumber}</td>
+                    <td className="py-3 px-4 text-slate-600 font-mono">{inv.issueDate}</td>
+                    <td className="py-3 px-4 text-slate-600 font-mono">{inv.dueDate}</td>
+                    <td className="py-3 px-4 text-right font-bold font-mono">{formatINR(inv.total)}</td>
+                    <td className="py-3 px-4 text-right font-semibold text-red-600 font-mono">{formatINR(inv.outstandingBalance)}</td>
+                    <td className="py-3 px-4">
+                      <Badge variant={inv.status}>{inv.status}</Badge>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <Button variant="ghost" size="sm" onClick={() => navigate(`/admin/invoices/${inv.id}`)}>
+                        View
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </Card>
@@ -230,7 +240,7 @@ export const CustomerDetailPage: React.FC = () => {
       {activeTab === 'payments' && (
         <Card className="overflow-hidden p-0">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#F7F8FA] border-b border-border text-text-secondary uppercase font-semibold">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[10px] tracking-wider">
               <tr>
                 <th className="py-3 px-4">Payment Ref</th>
                 <th className="py-3 px-4">Invoice #</th>
@@ -241,50 +251,30 @@ export const CustomerDetailPage: React.FC = () => {
                 <th className="py-3 px-4">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
-              {payments.map((p) => (
-                <tr key={p.id}>
-                  <td className="py-3 px-4 font-mono">{p.id}</td>
-                  <td className="py-3 px-4 font-mono font-medium text-primary">{p.invoiceNumber}</td>
-                  <td className="py-3 px-4">{p.paymentDate}</td>
-                  <td className="py-3 px-4 capitalize">{p.method.replace('_', ' ').toLowerCase()}</td>
-                  <td className="py-3 px-4 text-right font-bold text-success font-mono">+{formatINR(p.amount)}</td>
-                  <td className="py-3 px-4 text-text-muted">{p.note}</td>
-                  <td className="py-3 px-4">
-                    <Badge variant="paid">{p.status}</Badge>
+            <tbody className="divide-y divide-slate-100">
+              {payments.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-slate-400">
+                    No payment records logged yet.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                payments.map((p) => (
+                  <tr key={p.id}>
+                    <td className="py-3 px-4 font-mono">{p.id}</td>
+                    <td className="py-3 px-4 font-mono font-medium text-indigo-600">{p.invoiceNumber}</td>
+                    <td className="py-3 px-4 text-slate-600 font-mono">{p.paymentDate}</td>
+                    <td className="py-3 px-4 capitalize">{p.method.replace('_', ' ').toLowerCase()}</td>
+                    <td className="py-3 px-4 text-right font-bold text-emerald-600 font-mono">+{formatINR(p.amount)}</td>
+                    <td className="py-3 px-4 text-slate-500">{p.note}</td>
+                    <td className="py-3 px-4">
+                      <Badge variant="paid">{p.status}</Badge>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-        </Card>
-      )}
-
-      {activeTab === 'activity' && (
-        <Card title="Audit & Lifecycle Events">
-          <div className="space-y-4 text-xs">
-            <div className="flex gap-3">
-              <div className="w-2 h-2 mt-1.5 rounded-full bg-primary shrink-0" />
-              <div>
-                <p className="font-semibold text-text-primary">Invoice INV-2026-1001 generated by recurring billing cycle</p>
-                <p className="text-text-muted text-[11px]">2026-10-01 00:00:00 UTC</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <div className="w-2 h-2 mt-1.5 rounded-full bg-success shrink-0" />
-              <div>
-                <p className="font-semibold text-text-primary">Payment of $1,450.00 logged against invoice INV-2026-0801</p>
-                <p className="text-text-muted text-[11px]">2026-08-20 14:32:15 UTC</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <div className="w-2 h-2 mt-1.5 rounded-full bg-indigo-500 shrink-0" />
-              <div>
-                <p className="font-semibold text-text-primary">Subscription SUB-2026-0101 activated from accepted Quotation QT-2026-0042</p>
-                <p className="text-text-muted text-[11px]">2026-02-01 10:15:00 UTC</p>
-              </div>
-            </div>
-          </div>
         </Card>
       )}
     </div>

@@ -9,13 +9,14 @@ import {
   Printer,
   Calendar,
   AlertTriangle,
+  CheckCircle2,
 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
-import { MOCK_INVOICES, MOCK_PAYMENTS } from '../../services/mockData';
+import { useData } from '../../context/DataContext';
 import { Invoice, PaymentMethod } from '../../types';
 import { formatINR } from '../../utils/formatters';
 
@@ -24,7 +25,7 @@ export const InvoicesPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const initialFilter = searchParams.get('filter') === 'overdue' ? 'OVERDUE' : 'ALL';
 
-  const [invoices, setInvoices] = useState<Invoice[]>(MOCK_INVOICES);
+  const { invoices, addPayment } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>(initialFilter);
 
@@ -59,25 +60,9 @@ export const InvoicesPage: React.FC = () => {
     e.preventDefault();
     if (!paymentModalInvoice || paymentAmount <= 0) return;
 
-    const newPaidAmount = paymentModalInvoice.paidAmount + paymentAmount;
-    const newOutstanding = Math.max(0, paymentModalInvoice.total - newPaidAmount);
-    const newStatus = newOutstanding === 0 ? 'PAID' : 'CONFIRMED';
+    addPayment(paymentModalInvoice.id, Number(paymentAmount), paymentMethod, paymentNote);
 
-    // Update invoices list
-    setInvoices(
-      invoices.map((inv) =>
-        inv.id === paymentModalInvoice.id
-          ? {
-              ...inv,
-              paidAmount: newPaidAmount,
-              outstandingBalance: newOutstanding,
-              status: newStatus,
-            }
-          : inv
-      )
-    );
-
-    setPaymentSuccessMsg(`Payment of $${paymentAmount.toFixed(2)} recorded against ${paymentModalInvoice.invoiceNumber}`);
+    setPaymentSuccessMsg(`Payment of ${formatINR(Number(paymentAmount))} recorded against ${paymentModalInvoice.invoiceNumber}`);
     setPaymentModalInvoice(null);
     setTimeout(() => setPaymentSuccessMsg(null), 3500);
   };
@@ -86,45 +71,45 @@ export const InvoicesPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
             Invoice Ledger
           </h1>
-          <p className="text-xs text-text-secondary mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Tax-compliant billing statements, overdue accounts receivable, and payment reconciliation
           </p>
         </div>
       </div>
 
       {paymentSuccessMsg && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800">
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-medium text-emerald-800">
           {paymentSuccessMsg}
         </div>
       )}
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-lg border border-border">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-lg border border-slate-200">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search invoice #, customer..."
+            placeholder="Search by invoice #, customer name, company..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-[#F7F8FA] border border-border rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary focus:bg-white"
+            className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:bg-white"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <span className="text-xs text-text-muted hidden sm:inline">Status:</span>
+          <span className="text-xs text-slate-500 hidden sm:inline">Status:</span>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-xs border border-border rounded-md px-2.5 py-1.5 bg-white text-text-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="text-xs border border-slate-200 rounded-md px-2.5 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-600"
           >
-            <option value="ALL">All Invoices</option>
-            <option value="OVERDUE">Overdue Only</option>
-            <option value="CONFIRMED">Confirmed / Unpaid</option>
-            <option value="PAID">Fully Paid</option>
+            <option value="ALL">All Invoices ({invoices.length})</option>
+            <option value="CONFIRMED">Open / Confirmed</option>
+            <option value="PAID">Paid in Full</option>
+            <option value="OVERDUE">Overdue Receivables</option>
             <option value="DRAFT">Draft</option>
           </select>
         </div>
@@ -134,75 +119,91 @@ export const InvoicesPage: React.FC = () => {
       <Card className="overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#F7F8FA] border-b border-border text-text-secondary uppercase font-semibold">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
               <tr>
                 <th className="py-3 px-4">Invoice #</th>
-                <th className="py-3 px-4">Customer & Company</th>
+                <th className="py-3 px-4">Customer & Account</th>
                 <th className="py-3 px-4">Issue Date</th>
                 <th className="py-3 px-4">Due Date</th>
-                <th className="py-3 px-4 text-right">Total</th>
-                <th className="py-3 px-4 text-right">Paid</th>
+                <th className="py-3 px-4 text-right">Invoice Total</th>
+                <th className="py-3 px-4 text-right">Settled Amount</th>
                 <th className="py-3 px-4 text-right">Outstanding</th>
                 <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
-              {filteredInvoices.map((inv) => {
-                const isOverdue = inv.status === 'CONFIRMED' && new Date(inv.dueDate) < new Date();
-                return (
-                  <tr key={inv.id} className="hover:bg-gray-50/60 transition-colors">
-                    <td className="py-3 px-4 font-mono font-medium text-text-primary">
-                      {inv.invoiceNumber}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="font-semibold text-text-primary block">{inv.customerName}</span>
-                      <span className="text-[11px] text-text-secondary">{inv.customerCompany}</span>
-                    </td>
-                    <td className="py-3 px-4 text-text-secondary">{inv.issueDate}</td>
-                    <td className="py-3 px-4">
-                      <span className={isOverdue ? 'text-danger font-semibold flex items-center gap-1' : 'text-text-secondary'}>
-                        {isOverdue && <AlertTriangle className="w-3 h-3 text-danger" />}
-                        {inv.dueDate}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-right font-bold text-text-primary font-mono">{formatINR(inv.total)}</td>
-                    <td className="py-3 px-4 text-right text-success font-medium font-mono">{formatINR(inv.paidAmount)}</td>
-                    <td className="py-3 px-4 text-right">
-                      <span className={inv.outstandingBalance > 0 ? 'font-bold text-danger font-mono' : 'text-text-muted font-mono'}>
-                        {formatINR(inv.outstandingBalance)}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge variant={isOverdue ? 'overdue' : inv.status}>
-                        {isOverdue ? 'Overdue' : inv.status}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {inv.outstandingBalance > 0 && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            leftIcon={<CreditCard className="w-3 h-3 text-success" />}
-                            onClick={() => handleOpenPayment(inv)}
-                          >
-                            Pay
-                          </Button>
-                        )}
+            <tbody className="divide-y divide-slate-100">
+              {filteredInvoices.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="py-8 text-center text-slate-400">
+                    No invoices matching current filter.
+                  </td>
+                </tr>
+              ) : (
+                filteredInvoices.map((inv) => {
+                  const isOverdue =
+                    inv.status === 'CONFIRMED' && new Date(inv.dueDate) < new Date();
+                  return (
+                    <tr key={inv.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="py-3 px-4 font-mono font-medium text-slate-900">
+                        {inv.invoiceNumber}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="font-semibold text-slate-900">{inv.customerName}</div>
+                        <div className="text-[11px] text-slate-500">{inv.customerCompany}</div>
+                      </td>
+                      <td className="py-3 px-4 text-slate-600">{inv.issueDate}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className={isOverdue ? 'text-rose-600 font-semibold' : 'text-slate-600'}>
+                            {inv.dueDate}
+                          </span>
+                          {isOverdue && (
+                            <span className="text-[10px] bg-rose-50 text-rose-700 px-1.5 py-0.5 rounded font-bold border border-rose-200">
+                              OVERDUE
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-right font-bold text-slate-900 font-mono">
+                        {formatINR(inv.total)}
+                      </td>
+                      <td className="py-3 px-4 text-right text-emerald-700 font-mono">
+                        {formatINR(inv.paidAmount)}
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono">
+                        <span className={inv.outstandingBalance > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}>
+                          {formatINR(inv.outstandingBalance)}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge variant={inv.status}>{inv.status}</Badge>
+                      </td>
+                      <td className="py-3 px-4 text-right space-x-1 whitespace-nowrap">
                         <Button
                           variant="ghost"
                           size="sm"
-                          leftIcon={<Eye className="w-3 h-3" />}
+                          leftIcon={<Eye className="w-3.5 h-3.5" />}
                           onClick={() => navigate(`/admin/invoices/${inv.id}`)}
                         >
                           View
                         </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+
+                        {inv.status !== 'PAID' && inv.outstandingBalance > 0 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            leftIcon={<CreditCard className="w-3.5 h-3.5 text-emerald-600" />}
+                            onClick={() => handleOpenPayment(inv)}
+                          >
+                            Record Pay
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
@@ -213,68 +214,76 @@ export const InvoicesPage: React.FC = () => {
         <Modal
           isOpen={!!paymentModalInvoice}
           onClose={() => setPaymentModalInvoice(null)}
-          title={`Record Payment — ${paymentModalInvoice.invoiceNumber}`}
-          subtitle={`Customer: ${paymentModalInvoice.customerName} (${paymentModalInvoice.customerCompany})`}
+          title={`Record Manual Payment: ${paymentModalInvoice.invoiceNumber}`}
+          subtitle={`Client: ${paymentModalInvoice.customerName} (${paymentModalInvoice.customerCompany})`}
+          maxWidth="md"
         >
-          <form onSubmit={handleRecordPayment} className="space-y-4 text-xs">
-            <div className="bg-[#F7F8FA] p-3 rounded-lg border border-border flex justify-between items-center">
-              <div>
-                <span className="text-[11px] text-text-muted block">Invoice Total:</span>
-                <span className="text-xs font-bold text-text-primary">${paymentModalInvoice.total.toFixed(2)}</span>
+          <form onSubmit={handleRecordPayment} className="space-y-4">
+            <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs space-y-1">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Total Invoice Amount:</span>
+                <span className="font-mono font-medium">{formatINR(paymentModalInvoice.total)}</span>
               </div>
-              <div>
-                <span className="text-[11px] text-text-muted block">Already Paid:</span>
-                <span className="text-xs font-medium text-success">${paymentModalInvoice.paidAmount.toFixed(2)}</span>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Previously Settled:</span>
+                <span className="font-mono text-emerald-700">{formatINR(paymentModalInvoice.paidAmount)}</span>
               </div>
-              <div className="text-right">
-                <span className="text-[11px] text-text-muted block">Current Outstanding:</span>
-                <span className="text-sm font-bold text-danger">${paymentModalInvoice.outstandingBalance.toFixed(2)}</span>
+              <div className="flex justify-between font-bold border-t border-slate-200 pt-1">
+                <span className="text-slate-900">Current Outstanding:</span>
+                <span className="font-mono text-rose-600">{formatINR(paymentModalInvoice.outstandingBalance)}</span>
               </div>
             </div>
 
             <Input
-              label="Payment Amount ($)"
+              label="Payment Amount (INR ₹)"
               type="number"
-              step="0.01"
+              step="any"
+              min="1"
               max={paymentModalInvoice.outstandingBalance}
               value={paymentAmount}
-              onChange={(e) => setPaymentAmount(parseFloat(e.target.value) || 0)}
-              helperText={`Maximum payment allowed: $${paymentModalInvoice.outstandingBalance.toFixed(2)}`}
+              onChange={(e) => setPaymentAmount(Number(e.target.value))}
               required
             />
 
             <div>
-              <label className="block text-xs font-medium text-text-primary mb-1.5">Payment Method</label>
+              <label className="text-xs font-medium text-slate-700 block mb-1">
+                Payment Channel / Instrument
+              </label>
               <select
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                className="w-full text-xs border border-border rounded-md p-2 bg-white"
+                className="w-full text-xs border border-slate-200 rounded-md px-3 py-2 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-600"
               >
-                <option value="BANK_TRANSFER">Bank Wire / Electronic Transfer</option>
-                <option value="CREDIT_CARD">Credit / Debit Card</option>
+                <option value="BANK_TRANSFER">Bank Transfer (NEFT / RTGS / IMPS)</option>
                 <option value="CHEQUE">Corporate Cheque</option>
-                <option value="CASH">Cash / Direct Deposit</option>
+                <option value="CREDIT_CARD">Corporate Credit Card</option>
+                <option value="CASH">Cash Deposit</option>
               </select>
             </div>
 
             <Input
-              label="Payment Note / Reference"
-              placeholder="e.g. Wire transfer ref #US-981244 or Cheque clearance ID"
+              label="Internal Verification Reference / UTR #"
+              placeholder="e.g. UTR / NEFT reference number from bank statement"
               value={paymentNote}
               onChange={(e) => setPaymentNote(e.target.value)}
             />
 
-            <div className="flex justify-end gap-2 pt-4 border-t border-border">
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
               <Button
-                type="button"
                 variant="outline"
                 size="sm"
+                type="button"
                 onClick={() => setPaymentModalInvoice(null)}
               >
                 Cancel
               </Button>
-              <Button type="submit" variant="primary" size="sm">
-                Confirm & Record Payment
+              <Button
+                variant="primary"
+                size="sm"
+                type="submit"
+                leftIcon={<CheckCircle2 className="w-4 h-4" />}
+              >
+                Confirm Settlement
               </Button>
             </div>
           </form>

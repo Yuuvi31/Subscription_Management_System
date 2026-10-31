@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, User, Building2, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, Building2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
@@ -24,13 +24,12 @@ export const LoginPage: React.FC = () => {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      identifier: 'admin',
-      password: '233135',
+      identifier: '',
+      password: '',
     },
   });
 
@@ -44,11 +43,6 @@ export const LoginPage: React.FC = () => {
     } else {
       setAuthError(result.error || 'Invalid credentials. Please verify your credentials.');
     }
-  };
-
-  const handleFillCredentials = (identifier: string, pass: string) => {
-    setValue('identifier', identifier);
-    setValue('password', pass);
   };
 
   return (
@@ -79,7 +73,7 @@ export const LoginPage: React.FC = () => {
               label="Username or Email"
               type="text"
               autoComplete="username"
-              placeholder="e.g. admin, x182, or Yuvraj Dutt"
+              placeholder="Enter your username or email"
               leftIcon={<User className="w-4 h-4" />}
               error={errors.identifier?.message}
               {...register('identifier')}
@@ -90,7 +84,7 @@ export const LoginPage: React.FC = () => {
                 label="Password"
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
-                placeholder="••••••••"
+                placeholder="Enter your password"
                 leftIcon={<Lock className="w-4 h-4" />}
                 rightIcon={
                   <button
@@ -124,56 +118,6 @@ export const LoginPage: React.FC = () => {
             </Button>
           </form>
 
-          {/* Quick-Select Credentials Panel */}
-          <div className="mt-6 pt-5 border-t border-border">
-            <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2.5 text-center flex items-center justify-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-primary" /> Verified Role Credentials
-            </p>
-            <div className="space-y-2 text-xs">
-              <button
-                type="button"
-                onClick={() => handleFillCredentials('admin', '233135')}
-                className="w-full py-2 px-3 bg-gray-50 hover:bg-gray-100 border border-border rounded-md text-left flex items-center justify-between transition-colors"
-              >
-                <div>
-                  <span className="font-semibold text-text-primary block">Admin</span>
-                  <span className="text-[11px] text-text-muted font-mono">user: admin | pass: 233135</span>
-                </div>
-                <span className="text-[10px] font-bold text-primary bg-primary-light px-2 py-0.5 rounded">
-                  Full Access
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleFillCredentials('x182', '1234')}
-                className="w-full py-2 px-3 bg-gray-50 hover:bg-gray-100 border border-border rounded-md text-left flex items-center justify-between transition-colors"
-              >
-                <div>
-                  <span className="font-semibold text-text-primary block">Staff (Operations)</span>
-                  <span className="text-[11px] text-text-muted font-mono">user: x182 | pass: 1234</span>
-                </div>
-                <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">
-                  Staff Access
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleFillCredentials('Yuvraj Dutt', 'Yuvraj@2007')}
-                className="w-full py-2 px-3 bg-gray-50 hover:bg-gray-100 border border-border rounded-md text-left flex items-center justify-between transition-colors"
-              >
-                <div>
-                  <span className="font-semibold text-text-primary block">Customer (Yuvraj Dutt)</span>
-                  <span className="text-[11px] text-text-muted font-mono">user: Yuvraj Dutt | pass: Yuvraj@2007</span>
-                </div>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                  Client Portal
-                </span>
-              </button>
-            </div>
-          </div>
-
           <div className="mt-6 text-center text-xs text-text-secondary">
             Don't have an account?{' '}
             <Link to="/register" className="font-semibold text-primary hover:text-primary-hover">
@@ -181,6 +125,13 @@ export const LoginPage: React.FC = () => {
             </Link>
           </div>
         </div>
+
+        <p className="mt-4 text-center text-[11px] text-text-muted">
+          By signing in you agree to the Brightloop Software{' '}
+          <span className="text-primary cursor-pointer hover:underline">Terms of Service</span>{' '}
+          and{' '}
+          <span className="text-primary cursor-pointer hover:underline">Privacy Policy</span>.
+        </p>
       </div>
     </div>
   );

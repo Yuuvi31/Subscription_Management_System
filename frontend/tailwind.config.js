@@ -7,44 +7,60 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#F7F8FA',
+        background: '#F8FAFC',
         card: '#FFFFFF',
         sidebar: '#FFFFFF',
-        border: '#E8EAF0',
+        border: '#E2E8F0',
         primary: {
-          DEFAULT: '#635BDB',
-          hover: '#5046CA',
-          light: '#EEEDFC',
+          DEFAULT: '#4F46E5', // Refined enterprise indigo
+          hover: '#4338CA',
+          light: '#EEF2FF',
           foreground: '#FFFFFF',
         },
         text: {
-          primary: '#171A23',
-          secondary: '#737987',
-          muted: '#9DA3B4',
+          primary: '#0F172A', // Slate-900 high contrast
+          secondary: '#475569', // Slate-600 readable body
+          muted: '#94A3B8', // Slate-400 subtle label
         },
         success: {
-          DEFAULT: '#16845B',
-          light: '#E7F7F0',
+          DEFAULT: '#059669',
+          light: '#ECFDF5',
           foreground: '#FFFFFF',
         },
         warning: {
-          DEFAULT: '#D69228',
-          light: '#FEF7EB',
+          DEFAULT: '#D97706',
+          light: '#FFFBEB',
           foreground: '#FFFFFF',
         },
         danger: {
-          DEFAULT: '#D94C4C',
-          light: '#FDECEC',
+          DEFAULT: '#DC2626',
+          light: '#FEF2F2',
           foreground: '#FFFFFF',
         },
       },
       fontFamily: {
-        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: [
+          'Inter',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'Roboto',
+          'sans-serif',
+        ],
+        mono: [
+          '"JetBrains Mono"',
+          'ui-monospace',
+          'SFMono-Regular',
+          'Menlo',
+          'Monaco',
+          'Consolas',
+          'monospace',
+        ],
       },
       boxShadow: {
-        subtle: '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
-        card: '0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04)',
-        dropdown: '0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04)',
+        subtle: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        card: '0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.04)',
+        dropdown: '0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03)',
       },
     },
   },

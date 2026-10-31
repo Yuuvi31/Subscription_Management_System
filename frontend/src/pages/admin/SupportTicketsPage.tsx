@@ -2,155 +2,133 @@ import React, { useState } from 'react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
-import { MOCK_TICKETS } from '../../services/mockData';
-import { SupportTicket, TicketMessage, TicketStatus } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { useData } from '../../context/DataContext';
+import { SupportTicket, TicketStatus } from '../../types';
 import { LifeBuoy, Send, Clock, User, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export const SupportTicketsPage: React.FC = () => {
   const { user, role } = useAuth();
-  const [tickets, setTickets] = useState<SupportTicket[]>(MOCK_TICKETS);
-  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(tickets[0]);
+  const { tickets, replyTicket, updateTicketStatus } = useData();
+  const [selectedTicketId, setSelectedTicketId] = useState<string>(tickets[0]?.id || '');
   const [replyText, setReplyText] = useState('');
+
+  const selectedTicket = tickets.find((t) => t.id === selectedTicketId) || tickets[0] || null;
 
   const handleSendReply = (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyText.trim() || !selectedTicket) return;
 
-    const newMsg: TicketMessage = {
-      id: `msg-${Date.now()}`,
-      senderName: user?.name || (role === 'ADMIN' ? 'Admin' : 'Staff Member'),
-      senderRole: role,
-      message: replyText.trim(),
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    const updated = {
-      ...selectedTicket,
-      status: 'IN_PROGRESS' as TicketStatus,
-      messages: [...selectedTicket.messages, newMsg],
-      updatedAt: new Date().toISOString().split('T')[0],
-    };
-
-    setTickets(tickets.map((t) => (t.id === selectedTicket.id ? updated : t)));
-    setSelectedTicket(updated);
+    const senderName = user?.name || (role === 'ADMIN' ? 'Admin (Brightloop)' : 'Staff Support (x182)');
+    replyTicket(selectedTicket.id, replyText.trim(), senderName, role);
     setReplyText('');
   };
 
   const handleUpdateStatus = (newStatus: TicketStatus) => {
     if (!selectedTicket) return;
-    const updated = {
-      ...selectedTicket,
-      status: newStatus,
-      updatedAt: new Date().toISOString().split('T')[0],
-    };
-    setTickets(tickets.map((t) => (t.id === selectedTicket.id ? updated : t)));
-    setSelectedTicket(updated);
+    updateTicketStatus(selectedTicket.id, newStatus);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
             Customer Support Tickets
           </h1>
-          <p className="text-xs text-text-secondary mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Resolve customer inquiries, coordinate add-on upgrades, and answer billing queries
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Ticket List */}
-        <div className="lg:col-span-5 space-y-3">
-          <span className="text-xs font-semibold text-text-muted uppercase tracking-wider block">
-            Customer Inquiries Queue ({tickets.length})
-          </span>
-
-          {tickets.map((ticket) => {
-            const isSelected = selectedTicket?.id === ticket.id;
-            return (
-              <div
-                key={ticket.id}
-                onClick={() => setSelectedTicket(ticket)}
-                className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                  isSelected
-                    ? 'border-primary bg-primary-light/30 shadow-subtle ring-1 ring-primary'
-                    : 'border-border bg-white hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-text-primary">
-                    {ticket.ticketNumber}
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-gray-100 text-text-secondary">
-                      {ticket.category}
-                    </span>
-                    <Badge variant={ticket.status === 'RESOLVED' ? 'paid' : ticket.status === 'IN_PROGRESS' ? 'confirmed' : 'draft'}>
-                      {ticket.status.replace('_', ' ')}
+        <div className="space-y-3">
+          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            All Tickets ({tickets.length})
+          </h3>
+          <div className="space-y-2 max-h-[600px] overflow-y-auto">
+            {tickets.length === 0 ? (
+              <p className="p-4 text-center text-xs text-slate-400 bg-white rounded-lg border border-slate-200">
+                No support tickets found.
+              </p>
+            ) : (
+              tickets.map((t) => (
+                <div
+                  key={t.id}
+                  onClick={() => setSelectedTicketId(t.id)}
+                  className={`p-3.5 rounded-lg border text-left cursor-pointer transition-all ${
+                    selectedTicket?.id === t.id
+                      ? 'border-indigo-600 bg-indigo-50/50 shadow-sm ring-1 ring-indigo-600'
+                      : 'border-slate-200 hover:border-slate-300 bg-white'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="font-mono text-[11px] font-bold text-indigo-700">{t.ticketNumber}</span>
+                    <Badge variant={t.status === 'RESOLVED' ? 'PAID' : t.status === 'IN_PROGRESS' ? 'ACTIVE' : 'DRAFT'}>
+                      {t.status}
                     </Badge>
                   </div>
+                  <h4 className="text-xs font-bold text-slate-900 line-clamp-1">{t.subject}</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    {t.customerName} ({t.customerCompany})
+                  </p>
+                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                    <span className="capitalize">{t.category.toLowerCase()} • {t.priority.toLowerCase()}</span>
+                    <span>{t.updatedAt}</span>
+                  </div>
                 </div>
-
-                <div className="mt-1">
-                  <span className="text-xs font-semibold text-primary">{ticket.customerName}</span>
-                  <h4 className="text-xs font-bold text-text-primary mt-0.5 line-clamp-1">{ticket.subject}</h4>
-                </div>
-
-                <p className="text-[11px] text-text-secondary mt-1 line-clamp-2">
-                  {ticket.messages[ticket.messages.length - 1]?.message}
-                </p>
-
-                <div className="mt-3 pt-2.5 border-t border-border flex items-center justify-between text-[11px] text-text-muted">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> {ticket.updatedAt}
-                  </span>
-                  <span className="font-semibold text-danger">Priority: {ticket.priority}</span>
-                </div>
-              </div>
-            );
-          })}
+              ))
+            )}
+          </div>
         </div>
 
         {/* Conversation Thread */}
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-2">
           {selectedTicket ? (
-            <Card className="flex flex-col h-[600px] p-0 overflow-hidden">
-              <div className="p-4 border-b border-border bg-[#FBFBFC] flex items-center justify-between shrink-0">
+            <Card className="h-full flex flex-col justify-between p-0 overflow-hidden">
+              {/* Header */}
+              <div className="p-4 border-b border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-primary">
-                      {selectedTicket.ticketNumber}
-                    </span>
-                    <span className="text-xs font-semibold text-text-primary">
-                      Customer: {selectedTicket.customerName}
-                    </span>
-                    <Badge variant={selectedTicket.status === 'RESOLVED' ? 'paid' : 'confirmed'}>
-                      {selectedTicket.status.replace('_', ' ')}
+                    <span className="font-mono text-xs font-bold text-indigo-700">{selectedTicket.ticketNumber}</span>
+                    <Badge variant={selectedTicket.status === 'RESOLVED' ? 'PAID' : 'ACTIVE'}>
+                      {selectedTicket.status}
                     </Badge>
+                    <span className="text-xs text-slate-400">|</span>
+                    <span className="text-xs text-slate-600 font-medium">Category: {selectedTicket.category}</span>
                   </div>
-                  <h3 className="text-sm font-bold text-text-primary mt-1">{selectedTicket.subject}</h3>
+                  <h2 className="text-sm font-bold text-slate-900 mt-1">{selectedTicket.subject}</h2>
+                  <p className="text-xs text-slate-500">
+                    Raised by <strong>{selectedTicket.customerName}</strong> ({selectedTicket.customerCompany})
+                  </p>
                 </div>
 
-                {/* Status Update Dropdown */}
                 <div className="flex items-center gap-2">
-                  <select
-                    value={selectedTicket.status}
-                    onChange={(e) => handleUpdateStatus(e.target.value as TicketStatus)}
-                    className="text-xs border border-border rounded px-2.5 py-1 bg-white font-medium"
-                  >
-                    <option value="OPEN">Open</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="RESOLVED">Resolved</option>
-                    <option value="CLOSED">Closed</option>
-                  </select>
+                  {selectedTicket.status !== 'RESOLVED' ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      leftIcon={<CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
+                      onClick={() => handleUpdateStatus('RESOLVED')}
+                    >
+                      Mark Resolved
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleUpdateStatus('IN_PROGRESS')}
+                    >
+                      Reopen Ticket
+                    </Button>
+                  )}
                 </div>
               </div>
 
-              {/* Chat Thread */}
-              <div className="p-5 flex-1 overflow-y-auto space-y-4 bg-background/50">
+              {/* Message History */}
+              <div className="p-4 space-y-3 overflow-y-auto max-h-[420px] bg-slate-50/30 flex-1">
                 {selectedTicket.messages.map((m) => {
                   const isStaffOrAdmin = m.senderRole === 'ADMIN' || m.senderRole === 'STAFF';
                   return (
@@ -158,18 +136,18 @@ export const SupportTicketsPage: React.FC = () => {
                       key={m.id}
                       className={`flex flex-col ${isStaffOrAdmin ? 'items-end' : 'items-start'}`}
                     >
-                      <div className="flex items-center gap-1.5 mb-1 text-[11px]">
-                        <span className="font-semibold text-text-primary">{m.senderName}</span>
-                        <span className="text-[10px] font-bold text-primary bg-primary-light px-1.5 py-0.2 rounded font-mono">
+                      <div className="flex items-center gap-2 mb-1 text-[11px] text-slate-500">
+                        <span className="font-semibold text-slate-900">{m.senderName}</span>
+                        <span className="text-[10px] bg-slate-100 px-1.5 py-0.2 rounded font-mono">
                           {m.senderRole}
                         </span>
-                        <span className="text-text-muted text-[10px]">{m.timestamp}</span>
+                        <span>• {m.timestamp}</span>
                       </div>
                       <div
-                        className={`p-3.5 rounded-xl text-xs max-w-md shadow-subtle ${
+                        className={`p-3 rounded-lg max-w-lg text-xs leading-relaxed ${
                           isStaffOrAdmin
-                            ? 'bg-primary text-white rounded-br-none'
-                            : 'bg-white border border-border text-text-primary rounded-bl-none'
+                            ? 'bg-indigo-600 text-white rounded-br-none shadow-sm'
+                            : 'bg-white border border-slate-200 text-slate-900 rounded-bl-none shadow-sm'
                         }`}
                       >
                         {m.message}
@@ -180,22 +158,28 @@ export const SupportTicketsPage: React.FC = () => {
               </div>
 
               {/* Reply Box */}
-              <form onSubmit={handleSendReply} className="p-3 border-t border-border bg-white flex items-center gap-2 shrink-0">
+              <form onSubmit={handleSendReply} className="p-3 bg-white border-t border-slate-200 flex gap-2">
                 <input
                   type="text"
-                  placeholder={`Reply as ${role}...`}
+                  placeholder="Type an official response or instructions for customer..."
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
-                  className="flex-1 text-xs border border-border rounded-lg px-3.5 py-2.5 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                  className="flex-1 text-xs border border-slate-200 rounded-md px-3 py-2 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:bg-white"
                 />
-                <Button type="submit" variant="primary" size="md" leftIcon={<Send className="w-3.5 h-3.5" />}>
-                  Reply to Customer
+                <Button
+                  variant="primary"
+                  size="sm"
+                  type="submit"
+                  leftIcon={<Send className="w-3.5 h-3.5" />}
+                  disabled={!replyText.trim()}
+                >
+                  Reply
                 </Button>
               </form>
             </Card>
           ) : (
-            <div className="h-64 flex items-center justify-center border border-border border-dashed rounded-lg text-text-muted text-xs">
-              Select a customer ticket to respond.
+            <div className="h-full flex items-center justify-center p-12 text-center text-xs text-slate-400 bg-white rounded-lg border border-slate-200">
+              Select a ticket to review conversation thread.
             </div>
           )}
         </div>

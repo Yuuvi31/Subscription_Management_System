@@ -1,18 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Building, Mail, Phone, Eye, Filter, ArrowUpDown } from 'lucide-react';
+import { Search, Plus, Eye, Users, Trash2 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
-import { MOCK_CUSTOMERS } from '../../services/mockData';
-import { Customer } from '../../types';
+import { useData } from '../../context/DataContext';
 import { formatINR } from '../../utils/formatters';
 
 export const CustomersPage: React.FC = () => {
   const navigate = useNavigate();
-  const [customers, setCustomers] = useState<Customer[]>(MOCK_CUSTOMERS);
+  const { customers, addCustomer, deleteCustomer } = useData();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -24,6 +24,7 @@ export const CustomersPage: React.FC = () => {
     company: '',
     phone: '',
     address: '',
+    status: 'ACTIVE' as const,
   });
 
   const filteredCustomers = useMemo(() => {
@@ -41,23 +42,17 @@ export const CustomersPage: React.FC = () => {
     e.preventDefault();
     if (!newCustomer.name || !newCustomer.email || !newCustomer.company) return;
 
-    const created: Customer = {
-      id: `cust-${Date.now()}`,
+    addCustomer({
       name: newCustomer.name,
       email: newCustomer.email,
       company: newCustomer.company,
-      phone: newCustomer.phone || '+1 (555) 000-0000',
-      address: newCustomer.address || 'Enterprise HQ',
+      phone: newCustomer.phone || '+91 98765 00000',
+      address: newCustomer.address || 'Corporate Headquarters',
       status: 'ACTIVE',
-      totalSubscriptions: 0,
-      activeSubscriptions: 0,
-      outstandingAmount: 0.00,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
+    });
 
-    setCustomers([created, ...customers]);
     setIsAddModalOpen(false);
-    setNewCustomer({ name: '', email: '', company: '', phone: '', address: '' });
+    setNewCustomer({ name: '', email: '', company: '', phone: '', address: '', status: 'ACTIVE' });
   };
 
   return (
@@ -65,11 +60,11 @@ export const CustomersPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-            Customer Directory
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            Customer Accounts
           </h1>
-          <p className="text-xs text-text-secondary mt-1">
-            Accounts, corporate billing profiles, active subscriptions and outstanding balances
+          <p className="text-xs text-slate-500 mt-1">
+            Directory of client organizations, billing profiles, and contract commitments.
           </p>
         </div>
 
@@ -84,26 +79,26 @@ export const CustomersPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-lg border border-border">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-lg border border-slate-200">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search by customer, company, email..."
+            placeholder="Search by customer name, company, email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-[#F7F8FA] border border-border rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary focus:bg-white"
+            className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <span className="text-xs text-text-muted hidden sm:inline">Status:</span>
+          <span className="text-xs text-slate-500 hidden sm:inline">Status:</span>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-xs border border-border rounded-md px-2.5 py-1.5 bg-white text-text-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="text-xs border border-slate-200 rounded-md px-2.5 py-1.5 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
-            <option value="ALL">All Statuses</option>
+            <option value="ALL">All Accounts</option>
             <option value="ACTIVE">Active</option>
             <option value="INACTIVE">Inactive</option>
           </select>
@@ -114,61 +109,72 @@ export const CustomersPage: React.FC = () => {
       <Card className="overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#F7F8FA] border-b border-border text-text-secondary uppercase font-semibold">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[10px] tracking-wider">
               <tr>
-                <th className="py-3 px-4">Customer</th>
-                <th className="py-3 px-4">Company</th>
+                <th className="py-3 px-4">Customer Name</th>
+                <th className="py-3 px-4">Company Legal Entity</th>
                 <th className="py-3 px-4">Email</th>
                 <th className="py-3 px-4 text-center">Subscriptions</th>
-                <th className="py-3 px-4 text-right">Outstanding</th>
+                <th className="py-3 px-4 text-right">Outstanding Dues</th>
                 <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Registered</th>
+                <th className="py-3 px-4">Joined Date</th>
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-slate-100">
               {filteredCustomers.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-text-muted">
-                    No customers match the current search or filter.
+                  <td colSpan={8} className="py-12 text-center text-slate-400 space-y-2">
+                    <Users className="w-8 h-8 text-slate-300 mx-auto" />
+                    <p className="text-xs font-medium text-slate-700">No customer records found.</p>
+                    <p className="text-[11px] text-slate-400">Click "Add Customer" to create your genuine business client.</p>
                   </td>
                 </tr>
               ) : (
                 filteredCustomers.map((c) => (
-                  <tr key={c.id} className="hover:bg-gray-50/60 transition-colors">
-                    <td className="py-3 px-4 font-semibold text-text-primary">
+                  <tr key={c.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-3.5 px-4 font-semibold text-slate-900">
                       {c.name}
                     </td>
-                    <td className="py-3 px-4 text-text-secondary">{c.company}</td>
-                    <td className="py-3 px-4 text-text-secondary">{c.email}</td>
-                    <td className="py-3 px-4 text-center">
-                      <span className="font-semibold text-text-primary">{c.activeSubscriptions}</span>
-                      <span className="text-text-muted"> / {c.totalSubscriptions}</span>
+                    <td className="py-3.5 px-4 text-slate-600">{c.company}</td>
+                    <td className="py-3.5 px-4 text-slate-500">{c.email}</td>
+                    <td className="py-3.5 px-4 text-center font-mono">
+                      <span className="font-semibold text-slate-900">{c.activeSubscriptions}</span>
+                      <span className="text-slate-400"> / {c.totalSubscriptions}</span>
                     </td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-3.5 px-4 text-right font-mono">
                       <span
                         className={
                           c.outstandingAmount > 0
-                            ? 'font-bold text-danger font-mono'
-                            : 'text-text-secondary font-mono'
+                            ? 'font-bold text-red-600'
+                            : 'text-slate-600'
                         }
                       >
                         {formatINR(c.outstandingAmount)}
                       </span>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3.5 px-4">
                       <Badge variant={c.status}>{c.status}</Badge>
                     </td>
-                    <td className="py-3 px-4 text-text-muted font-mono">{c.createdAt}</td>
-                    <td className="py-3 px-4 text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        leftIcon={<Eye className="w-3.5 h-3.5" />}
-                        onClick={() => navigate(`/admin/customers/${c.id}`)}
-                      >
-                        View
-                      </Button>
+                    <td className="py-3.5 px-4 text-slate-400 font-mono text-[11px]">{c.createdAt}</td>
+                    <td className="py-3.5 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          leftIcon={<Eye className="w-3.5 h-3.5" />}
+                          onClick={() => navigate(`/admin/customers/${c.id}`)}
+                        >
+                          Details
+                        </Button>
+                        <button
+                          onClick={() => deleteCustomer(c.id)}
+                          title="Delete customer"
+                          className="p-1.5 text-slate-400 hover:text-red-600 rounded transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -182,46 +188,46 @@ export const CustomersPage: React.FC = () => {
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title="Add New Customer"
-        subtitle="Create a new client profile for subscriptions and invoices"
+        title="Create Customer Account"
+        subtitle="Record legal billing profile for quotations and invoices"
       >
         <form onSubmit={handleCreateCustomer} className="space-y-4 text-xs">
           <Input
-            label="Contact Full Name"
-            placeholder="e.g. Marcus Vance"
+            label="Primary Contact Name"
+            placeholder="e.g. Yuvraj Dutt"
             value={newCustomer.name}
             onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
             required
           />
           <Input
-            label="Company Name"
-            placeholder="e.g. Apex Logistics Inc."
+            label="Company Legal Entity"
+            placeholder="e.g. Apex Technologies Private Limited"
             value={newCustomer.company}
             onChange={(e) => setNewCustomer({ ...newCustomer, company: e.target.value })}
             required
           />
           <Input
-            label="Email Address"
+            label="Billing Email Address"
             type="email"
-            placeholder="e.g. billing@apexlogistics.com"
+            placeholder="e.g. yuvraj.dutt@enterprise.in"
             value={newCustomer.email}
             onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
             required
           />
           <Input
             label="Phone Number"
-            placeholder="+1 (555) 234-8901"
+            placeholder="+91 98765 43210"
             value={newCustomer.phone}
             onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
           />
           <Input
-            label="Office / Billing Address"
-            placeholder="100 Industrial Parkway, Chicago, IL"
+            label="Registered Office Address"
+            placeholder="Tower B, Sector 24, Cyber City, Gurugram, India"
             value={newCustomer.address}
             onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value })}
           />
 
-          <div className="flex justify-end gap-2 pt-4 border-t border-border">
+          <div className="flex justify-end gap-2 pt-4 border-t border-slate-200">
             <Button
               type="button"
               variant="outline"
@@ -231,7 +237,7 @@ export const CustomersPage: React.FC = () => {
               Cancel
             </Button>
             <Button type="submit" variant="primary" size="sm">
-              Create Customer
+              Save Customer
             </Button>
           </div>
         </form>

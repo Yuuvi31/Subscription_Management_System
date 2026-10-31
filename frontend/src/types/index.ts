@@ -12,7 +12,7 @@ export interface UserProfile {
 export type SubscriptionStatus = 'DRAFT' | 'QUOTATION' | 'CONFIRMED' | 'ACTIVE' | 'PAUSED' | 'CLOSED';
 export type InvoiceStatus = 'DRAFT' | 'CONFIRMED' | 'PAID' | 'CANCELLED';
 export type PaymentMethod = 'BANK_TRANSFER' | 'CREDIT_CARD' | 'CASH' | 'CHEQUE';
-export type BillingFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+export type BillingFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY' | 'ANNUALLY';
 export type ProductType = 'SOFTWARE' | 'SERVICE' | 'ADDON';
 export type DiscountType = 'FIXED' | 'PERCENTAGE';
 
@@ -257,6 +257,7 @@ export interface SupportTicket {
   ticketNumber: string;
   customerId: string;
   customerName: string;
+  customerCompany?: string;
   subject: string;
   category: TicketCategory;
   priority: TicketPriority;
@@ -265,4 +266,3 @@ export interface SupportTicket {
   createdAt: string;
   updatedAt: string;
 }
-

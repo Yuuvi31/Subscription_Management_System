@@ -4,11 +4,13 @@
 
 @layer base {
   body {
-    @apply bg-background text-text-primary font-sans antialiased;
+    @apply bg-slate-50 text-slate-900 font-sans antialiased;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Custom scrollbar for data tables and sidebar */
+  /* Custom subtle scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -17,21 +19,92 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-border rounded;
+    @apply bg-slate-300 rounded;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-text-muted;
+    @apply bg-slate-400;
   }
 }
 
+/* ========================================================
+   CLEAN VECTOR A4 PDF EXPORT STYLESHEET
+   Ensures genuine PDF print sizing, zero cutoffs, clean vectors
+   ======================================================== */
+@page {
+  size: A4 portrait;
+  margin: 12mm 15mm;
+}
+
 @media print {
-  body {
+  html, body {
     background: #FFFFFF !important;
+    color: #0F172A !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
-  .no-print {
+
+  /* Hide app navigation, sidebars, buttons, toolbars */
+  aside,
+  header,
+  nav,
+  .no-print,
+  button:not(.print-include) {
     display: none !important;
   }
-  .print-only {
+
+  /* Reset main layout padding and margins for true A4 */
+  .pl-60,
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* The actual invoice sheet container */
+  .printable-document {
+    background: #FFFFFF !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
     display: block !important;
+  }
+
+  /* Table rules for clean invoice pagination */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tr, td, th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Avoid cutting totals or signature blocks */
+  .print-avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* High contrast borders on print */
+  .print-border {
+    border-color: #CBD5E1 !important;
+  }
+
+  .print-bg-slate {
+    background-color: #F8FAFC !important;
   }
 }
